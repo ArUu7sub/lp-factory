@@ -1,92 +1,62 @@
-/* ===================================
-   AIスタートクラブ — LP スクリプト
-   =================================== */
-
+/* =============================================
+   AIスタートクラブ LP — script.js
+   ============================================= */
 (function () {
   'use strict';
 
-  /* ── ヘッダー: スクロール時クラス付与 ── */
+  /* ── ヘッダー: スクロールクラス ── */
   const header = document.getElementById('header');
   if (header) {
-    window.addEventListener('scroll', function () {
-      if (window.scrollY > 40) {
-        header.classList.add('is-scrolled');
-      } else {
-        header.classList.remove('is-scrolled');
-      }
-    }, { passive: true });
+    const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 60);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
   }
 
   /* ── ハンバーガーメニュー ── */
   const hamburger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobileNav');
   if (hamburger && mobileNav) {
-    hamburger.addEventListener('click', function () {
-      const isOpen = mobileNav.classList.toggle('is-open');
-      hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    hamburger.addEventListener('click', () => {
+      const open = mobileNav.classList.toggle('is-open');
+      hamburger.setAttribute('aria-expanded', open);
     });
-
-    // モバイルナビのリンクをクリックしたら閉じる
-    mobileNav.querySelectorAll('a').forEach(function (link) {
-      link.addEventListener('click', function () {
+    mobileNav.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
         mobileNav.classList.remove('is-open');
         hamburger.setAttribute('aria-expanded', 'false');
       });
     });
   }
 
-  /* ── スクロールリビール (Intersection Observer) ── */
-  const revealEls = document.querySelectorAll('.reveal');
-  if (revealEls.length > 0 && 'IntersectionObserver' in window) {
-    const revealObserver = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-    );
-    revealEls.forEach(function (el, i) {
-      // 子要素の連鎖アニメーション用の遅延
-      el.style.transitionDelay = (i % 4) * 0.08 + 's';
-      revealObserver.observe(el);
+  /* ── Intersection Observer: reveal ── */
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });
+
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 4) * 0.1}s`;
+      observer.observe(el);
     });
   } else {
-    // フォールバック: オブザーバー非対応ブラウザ
-    revealEls.forEach(function (el) {
-      el.classList.add('is-visible');
-    });
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
   }
 
-  /* ── スムーズスクロール（ヘッダー高さ分オフセット） ── */
-  document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
-    anchor.addEventListener('click', function (e) {
-      const href = this.getAttribute('href');
-      if (href === '#') return;
-      const target = document.querySelector(href);
+  /* ── スムーズスクロール（ヘッダーオフセット込み） ── */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id === '#') return;
+      const target = document.querySelector(id);
       if (!target) return;
       e.preventDefault();
-      const headerHeight = header ? header.offsetHeight : 0;
-      const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
-      window.scrollTo({ top: top, behavior: 'smooth' });
-    });
-  });
-
-  /* ── FAQ: details要素アニメーション ── */
-  document.querySelectorAll('.faq__item').forEach(function (details) {
-    details.addEventListener('toggle', function () {
-      // open/close でアロー回転は CSS で対応済み
-    });
-  });
-
-  /* ── CTAボタン: クリック追跡（オプション） ── */
-  document.querySelectorAll('.btn--primary').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      // Google Analyticsや計測ツールがある場合はここに追記
-      // 例: gtag('event', 'cta_click', { 'button_text': btn.textContent.trim() });
+      const offset = (header?.offsetHeight ?? 0) + 16;
+      window.scrollTo({ top: target.getBoundingClientRect().top + scrollY - offset, behavior: 'smooth' });
     });
   });
 
