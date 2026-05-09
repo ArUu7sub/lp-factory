@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# APIキー
+.env
+
+# 実行ログ（全プロジェクト共通）
+ops/codex/runs/
+projects/*/ops/codex/runs/
+
+# Obsidian設定（チームに不要）
+.obsidian/
