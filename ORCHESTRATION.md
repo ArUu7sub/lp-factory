@@ -1,7 +1,7 @@
 # ORCHESTRATION.md — エージェント統括定義
 
-このファイルは Claude Code と Codex が共通で読む統括ドキュメント。
-作業開始前に必ず読み込み、自分の役割と制約を把握してから動くこと。
+このファイルは Claude Code が作業開始前に読む統括ドキュメント。
+役割・保存先・完了報告形式を把握してから動くこと。
 
 ---
 
@@ -10,109 +10,77 @@
 ```
 ユーザー
   ↕ 相談・方針決定・最終確認
-Claude Code（指揮者・ライター）
-  ↕ ブリーフ（作業指示書）を生成して渡す
+Claude Code（指揮者・ライター・デザイナー・エンジニア）
+  └─ ヒアリング
+  └─ 参考デザイン検索・分析
+  └─ LP構成・コピー文作成
+  └─ HTML/CSS/JSのコーディング
+  └─ 自己レビュー（デザイン4原則・レスポンシブ・画像提案）
+  └─ GitHub Pagesへのデプロイ
 ユーザー
-  ↕ ブリーフをコピーして渡す
-Codex（作業員・デザイナー）
-  ↕ 成果物を projects/案件名/ に保存
-ユーザー
-  ↕ 「完了した」と Claude Code に報告
-Claude Code（検査役）
-  ↕ レビューブリーフを生成して渡す
-Codex（レビュアー）
+  ↕ ブラウザで最終確認・フィードバック
 ```
 
 ---
 
-## エージェント別の役割
+## Claude Codeの役割
+**すべての工程を一人で担当する。**
 
-### Claude Code
-**役割：指揮者・ライター・検査役**
-
-やること：
-- ユーザーへのヒアリング・情報整理
-- LP/HP構成の設計（structure.md）
-- コピー文の作成（copy.md）
-- Codex用ブリーフの生成（projects/案件名/ops/codex/briefs/）
-- Codex完了後のレビュー（ファイルを読んで確認）
-- WordPress変換が必要な場合の変換ブリーフ生成
-
-やらないこと：
-- Codexを自動起動しない（ブリーフを渡すだけ）
-- ヒアリング前にコピーを書かない
-- WordPressへの変換をデフォルトで行わない
-
-参照ファイル：
-- CLAUDE.md（運用ルール詳細）
-- self/identity.md, methodology.md, goals.md
-- knowledge/index.md → 各ナレッジノード
+| 工程 | やること |
+|------|---------|
+| ヒアリング | サービス・ターゲット・CVなどを確認 |
+| 参考デザイン検索 | 3つの参考サイトからトーンに合ったLPを取得・分析 |
+| 構成設計 | knowledge/構成パターン/ を参照 |
+| コピー作成 | knowledge/コピー設計/ を参照 |
+| コーディング | frontend-designプラグインを適用してHTML/CSS/JS生成 |
+| 自己レビュー | デザイン4原則・レスポンシブ・画像提案 |
+| デプロイ | ./ops/deploy.sh で GitHub Pages に自動公開 |
 
 ---
 
-### Codex
-**役割：作業員・デザイナー・レビュアー**
-
-やること：
-- ブリーフを読んでHTML/CSS/JSを生成
-- デザイン実装（カラー・レイアウト・レスポンシブ）
-- 成果物をすべて `projects/案件名/` 配下に保存
-- レビュー（デザイン4原則・レスポンシブ・画像提案）
-- 指示があればWordPress用PHPへの変換
-
-やらないこと：
-- ブリーフに書かれていない機能を追加しない
-- copy.mdのテキストを勝手に変更しない
-- WordPress変換をデフォルトで行わない
-- 保存先を projects/案件名/ 以外にしない
-
-参照ファイル：
-- AGENTS.md（コーディングルール・レビュー形式）
-- projects/案件名/brief.md（案件情報）
-- projects/案件名/copy.md（コピー文）
-- projects/案件名/structure.md（構成）
+## 参考デザインサイト
+コーディング前に必ず以下のサイトから案件のトーン・業種に合ったLPを検索する：
+1. https://sankoudesign.com/category/lp/
+2. https://rdlp.jp/lp-archive/
+3. https://site-advance.info/
 
 ---
 
 ## ファイルの保存ルール
 
-### Codexが出力するすべてのファイルの保存先
 ```
-projects/案件名/          ← ここ以外に保存しない
-├── index.html
-├── style.css
-├── script.js
-├── review.md             ← 1人目レビュー
-├── review_2nd.md         ← 2人目レビュー
-└── images/
-```
-
-### Claude Codeが生成するファイルの保存先
-```
-projects/案件名/          ← 案件ドキュメント
-├── brief.md
-├── structure.md
-└── copy.md
-
-projects/案件名/ops/codex/briefs/  ← Codex用ブリーフ
-├── 案件名_design.md
-└── 案件名_review.md
+projects/案件名/          ← すべての成果物はここに保存
+├── brief.md              ← ヒアリング情報
+├── structure.md          ← LP構成（各要素の揃え方明記）
+├── copy.md               ← コピー文
+├── index.html            ← LP本体
+├── style.css             ← スタイル
+├── script.js             ← JavaScript
+├── review.md             ← 自己レビュー
+└── images/               ← 画像・SVG
 ```
 
 ---
 
-## 完了報告の形式（Codex）
-作業の最終行に必ず出力する：
+## デプロイ
+```bash
+cd ~/work/lp-factory
+./ops/deploy.sh "案件名: 更新内容"
 ```
-DONE: created=N updated=N skipped=N
-files:
-- projects/案件名/index.html
-- projects/案件名/style.css
-notes:
-- （判断メモ）
-```
+URL：https://ArUu7sub.github.io/lp-factory/案件名/
 
 ---
 
-## 案件フォルダの作り方
-新規案件は `ops/project-template/` をコピーして `projects/案件名/` を作成する。
+## デザイン方針
+
+### frontend-designプラグイン
+- 汎用フォント（Inter・Roboto・Arial）禁止
+- 紫グラデーション×白背景などの定番AI aesthetic禁止
+- コンテキストに合った独自のカラーパレットを選定
+- 参考デザインの特徴を活かした個性的な実装
+
+### デザイン4原則
+- **近接**：関連要素を近くに。見出し↔本文 margin 8〜16px、セクション間 padding 64〜80px
+- **整列**：structure.mdの揃え指定をそのままCSS実装
+- **反復**：CSSカスタムプロパティで色・フォント・角丸・影を統一
+- **対比**：見出しサイズ差・CTAの色差・font-weight差を明確に
