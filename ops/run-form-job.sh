@@ -110,5 +110,17 @@ codex --search -a never exec \
   --output-last-message "$target_workspace/automation/jobs/codex-output.md" \
   - < "$review_prompt_file"
 
+python3 - "$output_dir/review.md" <<'PY'
+from pathlib import Path
+import sys
+
+review_path = Path(sys.argv[1])
+if review_path.is_file():
+    review = review_path.read_text(encoding="utf-8")
+    marker = "APPROVAL_STATUS: pending"
+    if marker not in review:
+        review_path.write_text(f"{marker}\n\n{review}", encoding="utf-8")
+PY
+
 python3 "$factory_root/.agents/skills/lp-production-pipeline/scripts/validate_run.py" \
   "$job_file" "$target_workspace"
