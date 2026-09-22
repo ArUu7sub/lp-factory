@@ -30,7 +30,38 @@ output_dir="$target_workspace/$output_rel"
 mkdir -p "$output_dir" "$target_workspace/automation/jobs"
 prompt_file="$(mktemp)"
 review_prompt_file="$(mktemp)"
-trap 'rm -f "$prompt_file" "$review_prompt_file"' EXIT
+diagnostic_dir="/tmp/lp-factory-diagnostics/$job_id"
+diagnostic_log="$diagnostic_dir/run.log"
+mkdir -p "$diagnostic_dir"
+
+collect_diagnostics() {
+  local exit_code=$?
+  printf '{"job_id":"%s","github_run_id":"%s","github_job":"%s","exit_code":%d,"collected_at":"%s"}\n' \
+    "$job_id" "${GITHUB_RUN_ID:-}" "${GITHUB_JOB:-}" "$exit_code" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    > "$diagnostic_dir/metadata.json"
+  for relative in \
+    "pipeline-state.json" \
+    "review.md" \
+    "reviews/creative-source-review.json" \
+    "reviews/creative-review.json" \
+    "reviews/implementation-review.json" \
+    "implementation/render-evidence.json"
+  do
+    if [[ -f "$output_dir/$relative" ]]; then
+      mkdir -p "$diagnostic_dir/$(dirname "$relative")"
+      cp "$output_dir/$relative" "$diagnostic_dir/$relative"
+    fi
+  done
+  for name in codex-output-production.md codex-output.md; do
+    if [[ -f "$target_workspace/automation/jobs/$name" ]]; then
+      cp "$target_workspace/automation/jobs/$name" "$diagnostic_dir/$name"
+    fi
+  done
+  chmod -R a+rX "$diagnostic_dir" 2>/dev/null || true
+  rm -f "$prompt_file" "$review_prompt_file"
+}
+trap collect_diagnostics EXIT
+exec > >(tee "$diagnostic_log") 2>&1
 
 runtime_root="${LP_BROWSER_RUNTIME_ROOT:-${HOME}/.cache/lp-factory-browser}"
 bash "$factory_root/ops/ensure-browser-runtime.sh"

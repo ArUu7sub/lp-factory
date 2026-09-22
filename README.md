@@ -22,4 +22,6 @@ The script runs the project-scoped Codex agents, enables live web search, reuses
 
 On its first run for each self-hosted runner user, the entrypoint installs pinned Node.js, Playwright, Chromium, and the official Noto Sans JP variable font under `~/.cache/lp-factory-browser`. Each download is checksum verified. It verifies Chromium and Japanese glyph loading before starting production. Codex creates deterministic HTML/CSS design and implementation source without launching a browser inside its sandbox; the trusted runner bundles the licensed Japanese font into the generated LP, captures five PNG files, and a second Codex pass performs rendered creative, implementation, and delivery reviews.
 
+Every run writes a local, read-only diagnostic bundle to `/tmp/lp-factory-diagnostics/<job-id>/`. It contains the GitHub run ID, exit code, stage state, review JSON, render evidence when available, and Codex final messages. The normalized form payload is intentionally excluded.
+
 See [ORCHESTRATION.md](ORCHESTRATION.md) for stages, owners, review loops, and delivery boundaries.
