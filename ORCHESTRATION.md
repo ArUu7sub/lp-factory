@@ -1,86 +1,94 @@
-# ORCHESTRATION.md — エージェント統括定義
+# 24H AI LP production orchestration
 
-このファイルは Claude Code が作業開始前に読む統括ドキュメント。
-役割・保存先・完了報告形式を把握してから動くこと。
+This repository controls repeatable LP production. The published page remains in the target repository; this factory stores reusable agents, stage contracts, validators, and operating guidance.
 
----
+## Trigger and boundary
 
-## システム全体像
-
-```
-ユーザー
-  ↕ 相談・方針決定・最終確認
-Claude Code（指揮者・ライター・デザイナー・エンジニア）
-  └─ ヒアリング
-  └─ 参考デザイン検索・分析
-  └─ LP構成・コピー文作成
-  └─ HTML/CSS/JSのコーディング
-  └─ 自己レビュー（デザイン4原則・レスポンシブ・画像提案）
-  └─ GitHub Pagesへのデプロイ
-ユーザー
-  ↕ ブラウザで最終確認・フィードバック
+```text
+Google Form submit
+  -> Apps Script installed onFormSubmit trigger
+  -> GitHub repository_dispatch: lp_form_submitted
+  -> Windows-hosted WSL self-hosted runner
+  -> Codex CLI root orchestrator
+  -> specialist agents and review gates
+  -> Draft PR
+  -> Vercel Preview
+  -> Discord notification after Preview succeeds
 ```
 
----
+Selecting a dropdown or moving to the next Google Form section does not start production. A completed form submission starts it.
 
-## Claude Codeの役割
-**すべての工程を一人で担当する。**
+`vault` is the knowledge system, `lp-factory` is the production controller, and `line-harness-auto-webinar-lp` is the publication repository. Do not mix their responsibilities.
 
-| 工程 | やること |
-|------|---------|
-| ヒアリング | サービス・ターゲット・CVなどを確認 |
-| 参考デザイン検索 | 3つの参考サイトからトーンに合ったLPを取得・分析 |
-| 構成設計 | knowledge/構成パターン/ を参照 |
-| コピー作成 | knowledge/コピー設計/ を参照 |
-| コーディング | frontend-designプラグインを適用してHTML/CSS/JS生成 |
-| 自己レビュー | デザイン4原則・レスポンシブ・画像提案 |
-| デプロイ | ./ops/deploy.sh で GitHub Pages に自動公開 |
+## Specialist stages
 
----
+| Stage | Direct specialist | Required output | Next gate |
+|---|---|---|---|
+| Intake validation | root orchestrator | `pipeline-state.json` | research |
+| Reference research | `lp-reference-researcher` | `research/references.md` | strategy |
+| Marketing design | `lp-marketing-strategist` | `strategy/marketing-brief.md` | copy |
+| Writing | `lp-copywriter` | `content/lp-copy.json` | visual production |
+| Wireframe, inserted images, full design | `lp-imagegen-designer` | wireframe, assets, desktop/mobile design and specs | creative review |
+| Creative review | `lp-creative-reviewer` | `reviews/creative-review.json` | implementation or visual revision |
+| Frontend implementation | `lp-frontend-builder` | HTML/CSS/JS and desktop/mobile screenshots | implementation review |
+| Design/code review | `lp-design-reviewer` | `reviews/implementation-review.json` | code revision or delivery |
+| Delivery audit | `lp-delivery-auditor` | final state and evidence check | Preview readiness |
 
-## 参考デザインサイト
-コーディング前に必ず以下のサイトから案件のトーン・業種に合ったLPを検索する：
-1. https://sankoudesign.com/category/lp/
-2. https://rdlp.jp/lp-archive/
-3. https://site-advance.info/
+The root orchestrator owns ordering, handoffs, retry counts, state updates, and the final evidence summary. It does not certify its own work.
 
----
+## Stage sequence
 
-## ファイルの保存ルール
+1. Validate the normalized job and create the output structure.
+2. Research current public references relevant to the audience, industry, desired tone, and supplied references. Record URLs, observed patterns, dates, and how each reference may influence the LP without copying it.
+3. Define audience, problem priority, value proposition, proof boundaries, message hierarchy, objections, and the role of each fixed section.
+4. Write concise Japanese copy for all six sections. Keep unverified claims out of public copy.
+5. Use the built-in `imagegen` path to create:
+   - a full-page wireframe image and a structured wireframe specification;
+   - section-specific inserted images listed in an asset manifest;
+   - a desktop full-page design and a mobile full-page design;
+   - a structured design specification with colors, typography, spacing, dimensions, and responsive behavior.
+6. Have the independent creative reviewer return `PASS` or `FAIL`. On `FAIL`, send the findings back to the visual owner and review again.
+7. After creative `PASS`, implement from `hero` downward, using the approved copy, design specification, and generated assets. Generate an additional image only when the approved design requires one and the manifest proves it is missing.
+8. Render and save desktop and mobile screenshots.
+9. Have the independent design reviewer compare approved designs against screenshots and verify responsiveness, accessibility, links, and asset loading. On `FAIL`, return findings to the frontend owner and review again.
+10. Mark `ready_for_preview` only after both gates pass. GitHub Actions then creates or updates a Draft PR. Vercel creates a Preview; a deployment-status workflow sends the Discord notice.
 
+## Review rules
+
+- Reviews use `schemas/review.schema.json`.
+- Reviewers must use observed evidence and name exact files or screen areas.
+- `PASS` means no blocking issue remains. Minor optional ideas belong in `notes` and do not become silent production changes.
+- `FAIL` must name the owner and concrete fixes.
+- Maximum three attempts per gate. Exceeding it produces `needs_human`.
+- A changed upstream artifact invalidates dependent downstream stages.
+
+## Required output tree
+
+```text
+generated/<job-id>/
+├── index.html
+├── styles.css
+├── script.js
+├── content.json
+├── review.md
+├── pipeline-state.json
+├── research/references.md
+├── strategy/marketing-brief.md
+├── content/lp-copy.json
+├── design/wireframe.png
+├── design/wireframe-spec.json
+├── design/desktop.png
+├── design/mobile.png
+├── design/design-spec.json
+├── design/assets-manifest.json
+├── assets/generated/
+├── implementation/screenshots/desktop.png
+├── implementation/screenshots/mobile.png
+└── reviews/
+    ├── creative-review.json
+    └── implementation-review.json
 ```
-projects/案件名/          ← すべての成果物はここに保存
-├── brief.md              ← ヒアリング情報
-├── structure.md          ← LP構成（各要素の揃え方明記）
-├── copy.md               ← コピー文
-├── index.html            ← LP本体
-├── style.css             ← スタイル
-├── script.js             ← JavaScript
-├── review.md             ← 自己レビュー
-└── images/               ← 画像・SVG
-```
 
----
+## Delivery boundary
 
-## デプロイ
-```bash
-cd ~/work/lp-factory
-./ops/deploy.sh "案件名: 更新内容"
-```
-URL：https://ArUu7sub.github.io/lp-factory/案件名/
-
----
-
-## デザイン方針
-
-### frontend-designプラグイン
-- 汎用フォント（Inter・Roboto・Arial）禁止
-- 紫グラデーション×白背景などの定番AI aesthetic禁止
-- コンテキストに合った独自のカラーパレットを選定
-- 参考デザインの特徴を活かした個性的な実装
-
-### デザイン4原則
-- **近接**：関連要素を近くに。見出し↔本文 margin 8〜16px、セクション間 padding 64〜80px
-- **整列**：structure.mdの揃え指定をそのままCSS実装
-- **反復**：CSSカスタムプロパティで色・フォント・角丸・影を統一
-- **対比**：見出しサイズ差・CTAの色差・font-weight差を明確に
+Automation may create a Draft PR, Vercel Preview, and Discord notification. It must not merge the PR or create a production deployment. The person reviewing the Preview supplies the final official LINE URL and authorizes publication separately.
