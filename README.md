@@ -4,18 +4,16 @@ Googleフォーム回答から、固定6セクションの24H AI LPを調査・�
 
 ## Location
 
-Linux側の正本は `/home/aru/projects/lp-factory` です。Windowsからも確認できるよう、`vault` と同じ階層に次のリンクを置きます。
+正本はWSLのLinuxファイルシステム上にある次のディレクトリです。
 
 ```text
-/mnt/d/workspace/
-├── vault/
-└── lp-factory -> /home/aru/projects/lp-factory
+/home/aru/projects/lp-factory
 ```
 
 ## Automated entrypoint
 
 ```bash
-/mnt/d/workspace/lp-factory/ops/run-form-job.sh \
+/home/aru/projects/lp-factory/ops/run-form-job.sh \
   /path/to/checked-out-publication-repo \
   /path/to/checked-out-publication-repo/automation/jobs/current.json
 ```
@@ -23,4 +21,3 @@ Linux側の正本は `/home/aru/projects/lp-factory` です。Windowsからも�
 The script runs the project-scoped Codex agents, enables live web search, reuses the runner user's ChatGPT login, and validates the complete evidence set. It does not use `OPENAI_API_KEY`.
 
 See [ORCHESTRATION.md](ORCHESTRATION.md) for stages, owners, review loops, and delivery boundaries.
-
