@@ -3,6 +3,7 @@
 
 # APIキー
 .env
+.runtime/
 
 # Python build artifacts
 __pycache__/
