@@ -38,15 +38,21 @@ node_root="$runtime_root/node-v24.21.0-linux-x64"
 export PATH="$node_root/bin:$PATH"
 export NODE_PATH="$runtime_root/package/node_modules"
 export PLAYWRIGHT_BROWSERS_PATH="$runtime_root/browsers"
+export LP_JAPANESE_FONT_PATH="$runtime_root/fonts/NotoSansJP-Variable.ttf"
+export LP_JAPANESE_FONT_LICENSE_PATH="$runtime_root/fonts/OFL.txt"
 
 node - <<'NODE'
 const {chromium} = require('playwright');
 (async () => {
   const browser = await chromium.launch({headless: true});
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
-  await page.setContent('<!doctype html><title>LP browser check</title>');
+  await page.setContent('<!doctype html><meta charset="utf-8"><title>LP browser check</title><p>日本語表示確認</p>');
+  await page.addStyleTag({content: `@font-face{font-family:"LP Noto Sans JP";src:url("${require('node:url').pathToFileURL(process.env.LP_JAPANESE_FONT_PATH).href}") format("truetype");font-weight:100 900;font-style:normal;font-display:block}html,body{font-family:"LP Noto Sans JP",sans-serif}`});
+  await page.evaluate(() => document.fonts.ready);
+  const japaneseFontReady = await page.evaluate(() => document.fonts.check('16px "LP Noto Sans JP"', '日本語表示確認'));
+  if (!japaneseFontReady) throw new Error('Japanese font failed to load in Chromium.');
   await browser.close();
-  console.log('LP browser runtime launch check passed.');
+  console.log('LP browser runtime and Japanese font launch check passed.');
 })().catch((error) => {
   console.error(error);
   process.exit(1);
