@@ -32,7 +32,7 @@ prompt_file="$(mktemp)"
 trap 'rm -f "$prompt_file"' EXIT
 
 runtime_root="${LP_BROWSER_RUNTIME_ROOT:-${HOME}/.cache/lp-factory-browser}"
-"$factory_root/ops/ensure-browser-runtime.sh"
+bash "$factory_root/ops/ensure-browser-runtime.sh"
 node_root="$runtime_root/node-v24.21.0-linux-x64"
 export PATH="$node_root/bin:$PATH"
 export NODE_PATH="$runtime_root/package/node_modules"
