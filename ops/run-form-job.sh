@@ -31,6 +31,27 @@ mkdir -p "$output_dir" "$target_workspace/automation/jobs"
 prompt_file="$(mktemp)"
 trap 'rm -f "$prompt_file"' EXIT
 
+runtime_root="${LP_BROWSER_RUNTIME_ROOT:-${HOME}/.cache/lp-factory-browser}"
+bash "$factory_root/ops/ensure-browser-runtime.sh"
+node_root="$runtime_root/node-v24.21.0-linux-x64"
+export PATH="$node_root/bin:$PATH"
+export NODE_PATH="$runtime_root/package/node_modules"
+export PLAYWRIGHT_BROWSERS_PATH="$runtime_root/browsers"
+
+node - <<'NODE'
+const {chromium} = require('playwright');
+(async () => {
+  const browser = await chromium.launch({headless: true});
+  const page = await browser.newPage({viewport: {width: 390, height: 844}});
+  await page.setContent('<!doctype html><title>LP browser check</title>');
+  await browser.close();
+  console.log('LP browser runtime launch check passed.');
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
+NODE
+
 cat "$factory_root/pipeline/run-job.md" > "$prompt_file"
 cat >> "$prompt_file" <<EOF
 
@@ -38,6 +59,8 @@ Runtime values:
 - TARGET_WORKSPACE: $target_workspace
 - JOB_FILE: $job_file
 - OUTPUT_DIR: $output_dir
+- BROWSER_RUNTIME: Playwright is preinstalled and verified. Use node with require('playwright'); do not install another browser package.
+- PLAYWRIGHT_BROWSERS_PATH: $PLAYWRIGHT_BROWSERS_PATH
 EOF
 
 codex --search -a never exec \
@@ -52,4 +75,3 @@ codex --search -a never exec \
 
 python3 "$factory_root/.agents/skills/lp-production-pipeline/scripts/validate_run.py" \
   "$job_file" "$target_workspace"
-
