@@ -37,4 +37,4 @@ The official LINE URL remains empty at draft time. Every LINE link must use `dat
 
 ## Completion gate
 
-Do not report a job ready for preview until all required workflow artifacts exist, both independent reviews are `PASS`, implementation screenshots exist at desktop and mobile sizes, and `pipeline-state.json` has `status: "ready_for_preview"`.
+The production pass must stop at `awaiting_render_review`; it must not attempt to launch a browser inside the Codex sandbox. Do not report a job ready for preview until the trusted runner has rendered all five PNG files, `creative-source-review.json`, `creative-review.json`, and `implementation-review.json` are `PASS`, render evidence has no blocking error, and `pipeline-state.json` has `status: "ready_for_preview"`.

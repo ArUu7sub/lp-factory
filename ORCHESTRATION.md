@@ -28,10 +28,12 @@ Selecting a dropdown or moving to the next Google Form section does not start pr
 | Reference research | `lp-reference-researcher` | `research/references.md` | strategy |
 | Marketing design | `lp-marketing-strategist` | `strategy/marketing-brief.md` | copy |
 | Writing | `lp-copywriter` | `content/lp-copy.json` | visual production |
-| Wireframe, inserted images, full design | `lp-imagegen-designer` | wireframe, assets, desktop/mobile design and specs | creative review |
-| Creative review | `lp-creative-reviewer` | `reviews/creative-review.json` | implementation or visual revision |
-| Frontend implementation | `lp-frontend-builder` | HTML/CSS/JS and desktop/mobile screenshots | implementation review |
-| Design/code review | `lp-design-reviewer` | `reviews/implementation-review.json` | code revision or delivery |
+| Wireframe, inserted images, full design source | `lp-imagegen-designer` | text-free image assets, deterministic HTML/CSS design source and specs | source creative review |
+| Source creative review | `lp-creative-reviewer` | `reviews/creative-source-review.json` | implementation or visual revision |
+| Frontend implementation | `lp-frontend-builder` | HTML/CSS/JS promoted from approved design source | trusted render |
+| Trusted render | runner shell outside Codex sandbox | design PNGs, implementation screenshots, render evidence | rendered reviews |
+| Rendered creative review | `lp-creative-reviewer` | `reviews/creative-review.json` | implementation review |
+| Design/code review | `lp-design-reviewer` | `reviews/implementation-review.json` | delivery |
 | Delivery audit | `lp-delivery-auditor` | final state and evidence check | Preview readiness |
 
 The root orchestrator owns ordering, handoffs, retry counts, state updates, and the final evidence summary. It does not certify its own work.
@@ -42,16 +44,12 @@ The root orchestrator owns ordering, handoffs, retry counts, state updates, and 
 2. Research current public references relevant to the audience, industry, desired tone, and supplied references. Use `references/lp-research-sources.md` as the standard Japanese LP gallery list, select direct example pages, and record URLs, observed patterns, dates, and how each reference may influence the LP without copying it.
 3. Define audience, problem priority, value proposition, proof boundaries, message hierarchy, objections, and the role of each fixed section.
 4. Write concise Japanese copy for all six sections. Keep unverified claims out of public copy.
-5. Use the built-in `imagegen` path to create:
-   - a full-page wireframe image and a structured wireframe specification;
-   - section-specific inserted images listed in an asset manifest;
-   - a desktop full-page design and a mobile full-page design;
-   - a structured design specification with colors, typography, spacing, dimensions, and responsive behavior.
-6. Have the independent creative reviewer return `PASS` or `FAIL`. On `FAIL`, send the findings back to the visual owner and review again.
-7. After creative `PASS`, implement from `hero` downward, using the approved copy, design specification, and generated assets. Generate an additional image only when the approved design requires one and the manifest proves it is missing.
-8. Render and save desktop and mobile screenshots.
-9. Have the independent design reviewer compare approved designs against screenshots and verify responsiveness, accessibility, links, and asset loading. On `FAIL`, return findings to the frontend owner and review again.
-10. Mark `ready_for_preview` only after both gates pass. GitHub Actions then creates or updates a Draft PR. Vercel creates a Preview; a deployment-status workflow sends the Discord notice.
+5. Use the built-in `imagegen` path only for necessary text-free inserted images listed in the asset manifest. Build the wireframe and full responsive design as local HTML/CSS with exact approved Japanese copy and actual asset paths. Save structured specs for colors, typography, spacing, dimensions, mappings, and responsive behavior.
+6. Have the independent creative reviewer inspect the deterministic design source and return `PASS` or `FAIL` in `creative-source-review.json`. On `FAIL`, send the findings back to the visual owner and review again.
+7. After source creative `PASS`, promote the approved prototype from `hero` downward into public HTML/CSS/JS. Do not launch a browser in the Codex sandbox. Set the job to `awaiting_render_review`.
+8. The trusted runner renders the wireframe, desktop/mobile design, and desktop/mobile implementation screenshots outside the Codex sandbox, and records console, request, section-order, and overflow evidence.
+9. A second Codex pass has the independent creative reviewer inspect the rendered design, then the independent design reviewer compare approved designs against implementation screenshots. The delivery auditor verifies the whole evidence set.
+10. Mark `ready_for_preview` only after source creative, rendered creative, and implementation gates pass. GitHub Actions then creates or updates a Draft PR. Vercel creates a Preview; a deployment-status workflow sends the Discord notice.
 
 ## Review rules
 
@@ -75,8 +73,11 @@ generated/<job-id>/
 ├── research/references.md
 ├── strategy/marketing-brief.md
 ├── content/lp-copy.json
+├── design/wireframe.html
 ├── design/wireframe.png
 ├── design/wireframe-spec.json
+├── design/prototype/index.html
+├── design/prototype/styles.css
 ├── design/desktop.png
 ├── design/mobile.png
 ├── design/design-spec.json
@@ -84,7 +85,9 @@ generated/<job-id>/
 ├── assets/generated/
 ├── implementation/screenshots/desktop.png
 ├── implementation/screenshots/mobile.png
+├── implementation/render-evidence.json
 └── reviews/
+    ├── creative-source-review.json
     ├── creative-review.json
     └── implementation-review.json
 ```
