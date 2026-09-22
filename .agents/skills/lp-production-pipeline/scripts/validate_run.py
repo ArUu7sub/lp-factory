@@ -186,6 +186,10 @@ def main() -> int:
     if not generated_assets.is_dir() or not any(generated_assets.iterdir()):
         errors.append("assets/generated contains no generated assets")
 
+    review_summary = root / "review.md"
+    if review_summary.is_file() and "APPROVAL_STATUS: pending" not in review_summary.read_text(encoding="utf-8"):
+        errors.append("review.md must contain APPROVAL_STATUS: pending")
+
     if errors:
         print("LP run validation failed:", file=sys.stderr)
         for error in errors:
