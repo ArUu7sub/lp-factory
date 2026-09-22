@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "sections": [
+    {"id": "hero", "purpose": "audience, service promise, primary benefit"},
+    {"id": "problems", "purpose": "up to three recognizable customer problems"},
+    {"id": "solution", "purpose": "service responsibility and human responsibility"},
+    {"id": "use-cases", "purpose": "up to six concrete capabilities or applications"},
+    {"id": "process", "purpose": "three to six operating steps"},
+    {"id": "final-cta", "purpose": "closing summary and blank LINE placeholder"}
+  ],
+  "conversion": {"channel": "LINE", "url": ""}
+}
+

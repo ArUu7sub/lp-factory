@@ -4,6 +4,10 @@
 # APIキー
 .env
 
+# Python build artifacts
+__pycache__/
+*.py[cod]
+
 # 実行ログ（全プロジェクト共通）
 ops/codex/runs/
 projects/*/ops/codex/runs/

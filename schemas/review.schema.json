@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LP review gate",
+  "type": "object",
+  "required": ["gate", "status", "attempt", "reviewer", "evidence", "blockingIssues", "notes"],
+  "properties": {
+    "gate": {"enum": ["creative", "implementation"]},
+    "status": {"enum": ["PASS", "FAIL"]},
+    "attempt": {"type": "integer", "minimum": 1, "maximum": 3},
+    "reviewer": {"type": "string", "minLength": 1},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "blockingIssues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["owner", "location", "problem", "requiredFix"],
+        "properties": {
+          "owner": {"type": "string"},
+          "location": {"type": "string"},
+          "problem": {"type": "string"},
+          "requiredFix": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}
+

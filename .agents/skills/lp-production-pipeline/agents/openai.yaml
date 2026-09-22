@@ -1,0 +1,4 @@
+interface:
+  display_name: "LP Production Pipeline"
+  short_description: "Google Form回答からLPを段階制作・審査する"
+  default_prompt: "Googleフォーム回答を使い、固定6セクションのLPを調査・設計・画像生成・実装・レビューまで進めてください。"
