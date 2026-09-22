@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -20,6 +21,8 @@ REQUIRED_FILES = (
     "research/references.md",
     "strategy/marketing-brief.md",
     "content/lp-copy.json",
+    "assets/fonts/NotoSansJP-Variable.ttf",
+    "assets/fonts/OFL.txt",
     "design/wireframe.html",
     "design/wireframe.png",
     "design/wireframe-spec.json",
@@ -36,6 +39,7 @@ REQUIRED_FILES = (
     "reviews/creative-review.json",
     "reviews/implementation-review.json",
 )
+JAPANESE_FONT_SHA256 = "c2f3b4d463500a2ddcd3849cded1fceeb9fd6d1c32e6cbecd568453ba50fc68f"
 SECTION_IDS = ("hero", "problems", "solution", "use-cases", "process", "final-cta")
 PNG_FILES = (
     "design/wireframe.png",
@@ -88,6 +92,25 @@ def main() -> int:
             if len(data) < 1024 or not data.startswith(b"\x89PNG\r\n\x1a\n"):
                 errors.append(f"invalid PNG: {relative}")
 
+    font_path = root / "assets" / "fonts" / "NotoSansJP-Variable.ttf"
+    if font_path.is_file():
+        font_sha256 = hashlib.sha256(font_path.read_bytes()).hexdigest()
+        if font_sha256 != JAPANESE_FONT_SHA256:
+            errors.append("assets/fonts/NotoSansJP-Variable.ttf: unexpected SHA-256")
+
+    for relative in ("styles.css", "design/prototype/styles.css"):
+        css_path = root / relative
+        if css_path.is_file():
+            css = css_path.read_text(encoding="utf-8")
+            if 'font-family: "LP Noto Sans JP"' not in css or "NotoSansJP-Variable.ttf" not in css:
+                errors.append(f"{relative}: bundled Japanese font is not configured")
+
+    wireframe_path = root / "design" / "wireframe.html"
+    if wireframe_path.is_file():
+        wireframe_html = wireframe_path.read_text(encoding="utf-8")
+        if "data-lp-factory-japanese-font" not in wireframe_html:
+            errors.append("design/wireframe.html: bundled Japanese font is not configured")
+
     html_path = root / "index.html"
     if html_path.is_file():
         html = html_path.read_text(encoding="utf-8")
@@ -136,6 +159,15 @@ def main() -> int:
                 errors.append("implementation/render-evidence.json: render checks did not pass")
             if len(render_evidence.get("results", [])) != 5:
                 errors.append("implementation/render-evidence.json: expected five captures")
+            renderer_font = render_evidence.get("renderer", {}).get("japaneseFont", {})
+            if renderer_font.get("sha256") != JAPANESE_FONT_SHA256:
+                errors.append("implementation/render-evidence.json: Japanese font evidence is missing or invalid")
+            for result in render_evidence.get("results", []):
+                dom = result.get("dom", {})
+                if dom.get("japaneseFontReady") is not True:
+                    errors.append(f"implementation/render-evidence.json: Japanese font was not ready for {result.get('name', 'unknown capture')}")
+                if "LP Noto Sans JP" not in str(dom.get("bodyFontFamily", "")):
+                    errors.append(f"implementation/render-evidence.json: Japanese font was not applied for {result.get('name', 'unknown capture')}")
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             errors.append(str(exc))
 
