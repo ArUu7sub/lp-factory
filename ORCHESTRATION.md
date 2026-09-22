@@ -39,7 +39,7 @@ The root orchestrator owns ordering, handoffs, retry counts, state updates, and 
 ## Stage sequence
 
 1. Validate the normalized job and create the output structure.
-2. Research current public references relevant to the audience, industry, desired tone, and supplied references. Record URLs, observed patterns, dates, and how each reference may influence the LP without copying it.
+2. Research current public references relevant to the audience, industry, desired tone, and supplied references. Use `references/lp-research-sources.md` as the standard Japanese LP gallery list, select direct example pages, and record URLs, observed patterns, dates, and how each reference may influence the LP without copying it.
 3. Define audience, problem priority, value proposition, proof boundaries, message hierarchy, objections, and the role of each fixed section.
 4. Write concise Japanese copy for all six sections. Keep unverified claims out of public copy.
 5. Use the built-in `imagegen` path to create:
