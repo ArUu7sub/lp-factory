@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a completed fixed-format LP production run."""
+"""Validate deterministic LP source before trusted browser rendering."""
 
 from __future__ import annotations
 
@@ -15,35 +15,19 @@ REQUIRED_FILES = (
     "styles.css",
     "script.js",
     "content.json",
-    "review.md",
     "pipeline-state.json",
     "research/references.md",
     "strategy/marketing-brief.md",
     "content/lp-copy.json",
     "design/wireframe.html",
-    "design/wireframe.png",
     "design/wireframe-spec.json",
     "design/prototype/index.html",
     "design/prototype/styles.css",
-    "design/desktop.png",
-    "design/mobile.png",
     "design/design-spec.json",
     "design/assets-manifest.json",
-    "implementation/screenshots/desktop.png",
-    "implementation/screenshots/mobile.png",
-    "implementation/render-evidence.json",
     "reviews/creative-source-review.json",
-    "reviews/creative-review.json",
-    "reviews/implementation-review.json",
 )
 SECTION_IDS = ("hero", "problems", "solution", "use-cases", "process", "final-cta")
-PNG_FILES = (
-    "design/wireframe.png",
-    "design/desktop.png",
-    "design/mobile.png",
-    "implementation/screenshots/desktop.png",
-    "implementation/screenshots/mobile.png",
-)
 
 
 def load_json(path: Path) -> dict:
@@ -52,6 +36,21 @@ def load_json(path: Path) -> dict:
     if not isinstance(value, dict):
         raise ValueError(f"{path}: expected a JSON object")
     return value
+
+
+def check_html(path: Path, label: str, errors: list[str]) -> None:
+    html = path.read_text(encoding="utf-8")
+    positions: list[int] = []
+    for section_id in SECTION_IDS:
+        match = re.search(rf'\bid=["\']{re.escape(section_id)}["\']', html)
+        if not match:
+            errors.append(f"{label}: missing section id {section_id}")
+        else:
+            positions.append(match.start())
+    if positions and positions != sorted(positions):
+        errors.append(f"{label}: section ids are out of order")
+    if "file://" in html:
+        errors.append(f"{label}: contains file:// URL")
 
 
 def main() -> int:
@@ -71,8 +70,8 @@ def main() -> int:
     if output_rel != expected_rel:
         errors.append(f"output_dir must be {expected_rel}, got {output_rel}")
 
-    root = (args.target_workspace.resolve() / output_rel).resolve()
     workspace = args.target_workspace.resolve()
+    root = (workspace / output_rel).resolve()
     if workspace not in root.parents:
         errors.append("output_dir escapes the target workspace")
 
@@ -81,27 +80,18 @@ def main() -> int:
         if not path.is_file() or path.stat().st_size == 0:
             errors.append(f"missing or empty: {relative}")
 
-    for relative in PNG_FILES:
+    for relative, label in (
+        ("index.html", "public implementation"),
+        ("design/wireframe.html", "wireframe source"),
+        ("design/prototype/index.html", "design prototype"),
+    ):
         path = root / relative
         if path.is_file():
-            data = path.read_bytes()
-            if len(data) < 1024 or not data.startswith(b"\x89PNG\r\n\x1a\n"):
-                errors.append(f"invalid PNG: {relative}")
+            check_html(path, label, errors)
 
     html_path = root / "index.html"
     if html_path.is_file():
         html = html_path.read_text(encoding="utf-8")
-        positions = []
-        for section_id in SECTION_IDS:
-            match = re.search(rf'\bid=["\']{re.escape(section_id)}["\']', html)
-            if not match:
-                errors.append(f"missing section id: {section_id}")
-            else:
-                positions.append(match.start())
-        if positions and positions != sorted(positions):
-            errors.append("section ids are out of order")
-        if "file://" in html:
-            errors.append("public HTML contains file:// URL")
         line_links = re.findall(r"<a\b[^>]*data-line-cta[^>]*>", html, flags=re.I)
         if not line_links:
             errors.append("no data-line-cta link found")
@@ -110,32 +100,16 @@ def main() -> int:
             if href and href.group(1) not in ("", "#"):
                 errors.append("LINE CTA URL must remain empty or #")
 
-    for relative, gate in (
-        ("reviews/creative-source-review.json", "creative"),
-        ("reviews/creative-review.json", "creative"),
-        ("reviews/implementation-review.json", "implementation"),
-    ):
-        path = root / relative
-        if path.is_file():
-            try:
-                review = load_json(path)
-                if review.get("gate") != gate:
-                    errors.append(f"{relative}: incorrect gate")
-                if review.get("status") != "PASS":
-                    errors.append(f"{relative}: review is not PASS")
-                if review.get("blockingIssues"):
-                    errors.append(f"{relative}: blocking issues remain")
-            except (OSError, ValueError, json.JSONDecodeError) as exc:
-                errors.append(str(exc))
-
-    render_evidence_path = root / "implementation" / "render-evidence.json"
-    if render_evidence_path.is_file():
+    review_path = root / "reviews" / "creative-source-review.json"
+    if review_path.is_file():
         try:
-            render_evidence = load_json(render_evidence_path)
-            if render_evidence.get("pass") is not True:
-                errors.append("implementation/render-evidence.json: render checks did not pass")
-            if len(render_evidence.get("results", [])) != 5:
-                errors.append("implementation/render-evidence.json: expected five captures")
+            review = load_json(review_path)
+            if review.get("gate") != "creative":
+                errors.append("creative-source-review.json: incorrect gate")
+            if review.get("status") != "PASS":
+                errors.append("creative-source-review.json: review is not PASS")
+            if review.get("blockingIssues"):
+                errors.append("creative-source-review.json: blocking issues remain")
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             errors.append(str(exc))
 
@@ -145,8 +119,8 @@ def main() -> int:
             state = load_json(state_path)
             if state.get("jobId") != job_id:
                 errors.append("pipeline-state jobId does not match")
-            if state.get("status") != "ready_for_preview":
-                errors.append("pipeline-state status is not ready_for_preview")
+            if state.get("status") != "awaiting_render_review":
+                errors.append("pipeline-state status is not awaiting_render_review")
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             errors.append(str(exc))
 
@@ -155,7 +129,7 @@ def main() -> int:
         errors.append("assets/generated contains no generated assets")
 
     if errors:
-        print("LP run validation failed:", file=sys.stderr)
+        print("LP pre-render validation failed:", file=sys.stderr)
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1

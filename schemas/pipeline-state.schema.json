@@ -5,10 +5,9 @@
   "required": ["jobId", "status", "updatedAt", "stages"],
   "properties": {
     "jobId": {"type": "string", "minLength": 1},
-    "status": {"enum": ["running", "needs_human", "ready_for_preview", "failed"]},
+    "status": {"enum": ["running", "awaiting_render_review", "needs_human", "ready_for_preview", "failed"]},
     "updatedAt": {"type": "string", "minLength": 1},
     "stages": {"type": "object", "minProperties": 1}
   },
   "additionalProperties": true
 }
-

@@ -29,7 +29,8 @@ fi
 output_dir="$target_workspace/$output_rel"
 mkdir -p "$output_dir" "$target_workspace/automation/jobs"
 prompt_file="$(mktemp)"
-trap 'rm -f "$prompt_file"' EXIT
+review_prompt_file="$(mktemp)"
+trap 'rm -f "$prompt_file" "$review_prompt_file"' EXIT
 
 runtime_root="${LP_BROWSER_RUNTIME_ROOT:-${HOME}/.cache/lp-factory-browser}"
 bash "$factory_root/ops/ensure-browser-runtime.sh"
@@ -70,8 +71,33 @@ codex --search -a never exec \
   --color never \
   -C "$factory_root" \
   --add-dir "$target_workspace" \
-  --output-last-message "$target_workspace/automation/jobs/codex-output.md" \
+  --output-last-message "$target_workspace/automation/jobs/codex-output-production.md" \
   - < "$prompt_file"
+
+python3 "$factory_root/.agents/skills/lp-production-pipeline/scripts/validate_pre_render.py" \
+  "$job_file" "$target_workspace"
+
+node "$factory_root/ops/capture-lp.cjs" "$output_dir"
+
+cat "$factory_root/pipeline/review-rendered.md" > "$review_prompt_file"
+cat >> "$review_prompt_file" <<EOF
+
+Runtime values:
+- TARGET_WORKSPACE: $target_workspace
+- JOB_FILE: $job_file
+- OUTPUT_DIR: $output_dir
+- RENDER_EVIDENCE: $output_dir/implementation/render-evidence.json
+EOF
+
+codex --search -a never exec \
+  --ephemeral \
+  --sandbox workspace-write \
+  --ignore-rules \
+  --color never \
+  -C "$factory_root" \
+  --add-dir "$target_workspace" \
+  --output-last-message "$target_workspace/automation/jobs/codex-output.md" \
+  - < "$review_prompt_file"
 
 python3 "$factory_root/.agents/skills/lp-production-pipeline/scripts/validate_run.py" \
   "$job_file" "$target_workspace"
