@@ -43,11 +43,16 @@ export LP_JAPANESE_FONT_LICENSE_PATH="$runtime_root/fonts/OFL.txt"
 
 node - <<'NODE'
 const {chromium} = require('playwright');
+const fs = require('node:fs');
+const path = require('node:path');
+const {pathToFileURL} = require('node:url');
 (async () => {
+  const fontPath = process.env.LP_JAPANESE_FONT_PATH;
+  const checkPath = path.join(path.dirname(fontPath), 'browser-font-check.html');
+  fs.writeFileSync(checkPath, '<!doctype html><meta charset="utf-8"><style>@font-face{font-family:"LP Noto Sans JP";src:url("./NotoSansJP-Variable.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:block}html,body{font-family:"LP Noto Sans JP",sans-serif}</style><p>日本語表示確認</p>');
   const browser = await chromium.launch({headless: true});
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
-  await page.setContent('<!doctype html><meta charset="utf-8"><title>LP browser check</title><p>日本語表示確認</p>');
-  await page.addStyleTag({content: `@font-face{font-family:"LP Noto Sans JP";src:url("${require('node:url').pathToFileURL(process.env.LP_JAPANESE_FONT_PATH).href}") format("truetype");font-weight:100 900;font-style:normal;font-display:block}html,body{font-family:"LP Noto Sans JP",sans-serif}`});
+  await page.goto(pathToFileURL(checkPath).href, {waitUntil: 'load'});
   await page.evaluate(() => document.fonts.ready);
   const japaneseFontReady = await page.evaluate(() => document.fonts.check('16px "LP Noto Sans JP"', '日本語表示確認'));
   if (!japaneseFontReady) throw new Error('Japanese font failed to load in Chromium.');
