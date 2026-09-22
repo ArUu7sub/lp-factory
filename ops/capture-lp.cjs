@@ -34,7 +34,7 @@ const markerStart = '/* lp-factory:noto-sans-jp:start */';
 const markerEnd = '/* lp-factory:noto-sans-jp:end */';
 
 function fontCss(relativeUrl) {
-  return `${markerStart}\n@font-face {\n  font-family: "LP Noto Sans JP";\n  src: url("${relativeUrl}") format("truetype");\n  font-style: normal;\n  font-weight: 100 900;\n  font-display: block;\n}\nhtml, body, button, input, textarea, select {\n  font-family: "LP Noto Sans JP", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;\n}\n${markerEnd}`;
+  return `${markerStart}\n@font-face {\n  font-family: "LP Noto Sans JP";\n  src: url("${relativeUrl}") format("truetype");\n  font-style: normal;\n  font-weight: 100 900;\n  font-display: block;\n}\nhtml, body, button, input, textarea, select {\n  font-family: "LP Noto Sans JP", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif !important;\n}\n${markerEnd}`;
 }
 
 function upsertCssFile(relativePath, fontUrl) {
