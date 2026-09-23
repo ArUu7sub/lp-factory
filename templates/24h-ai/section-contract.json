@@ -8,6 +8,18 @@
     {"id": "process", "purpose": "three to six operating steps"},
     {"id": "final-cta", "purpose": "closing summary and blank LINE placeholder"}
   ],
-  "conversion": {"channel": "LINE", "url": ""}
+  "conversion": {"channel": "LINE", "url": ""},
+  "visual_contract": {
+    "policy_version": 2,
+    "hero_layouts": [
+      "split-text-left-visual-right",
+      "centered-copy-over-background"
+    ],
+    "hero_art": "built-in imagegen raster asset",
+    "mobile": "use responsive crop only when tested safe; otherwise generate a dedicated mobile asset",
+    "final_cta": "separate built-in imagegen background asset",
+    "copy_rendering": "html",
+    "embedded_copy_in_images": false,
+    "css_pictorial_hero": false
+  }
 }
-
