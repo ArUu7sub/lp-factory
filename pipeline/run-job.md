@@ -16,7 +16,7 @@ Complete these stages only:
 2. reference research;
 3. marketing strategy;
 4. copy;
-5. text-free imagegen assets plus deterministic HTML/CSS wireframe and responsive design source;
+5. text-free imagegen Hero, CTA background, and justified section assets plus deterministic HTML/CSS wireframe and responsive design source;
 6. independent source creative review, with at most three design-source revisions;
 7. public implementation promoted from the approved design prototype.
 

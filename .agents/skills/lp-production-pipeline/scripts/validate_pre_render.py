@@ -9,6 +9,8 @@ import re
 import sys
 from pathlib import Path
 
+from asset_policy import validate_visual_assets
+
 
 REQUIRED_FILES = (
     "index.html",
@@ -127,6 +129,13 @@ def main() -> int:
     generated_assets = root / "assets" / "generated"
     if not generated_assets.is_dir() or not any(generated_assets.iterdir()):
         errors.append("assets/generated contains no generated assets")
+
+    asset_manifest_path = root / "design" / "assets-manifest.json"
+    if asset_manifest_path.is_file():
+        try:
+            validate_visual_assets(root, load_json(asset_manifest_path), errors)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(str(exc))
 
     if errors:
         print("LP pre-render validation failed:", file=sys.stderr)

@@ -35,6 +35,8 @@ The section count and IDs are fixed. Content, layout, color, typography, imagery
 
 The official LINE URL remains empty at draft time. Every LINE link must use `data-line-cta` and an empty or `#` href.
 
+The Hero uses exactly one approved imagegen composition: left HTML copy with a full-bleed visual filling the right Hero region, or centered HTML copy over a full-bleed background. Generate a mobile-specific Hero when the desktop crop is not safe. Generate a separate imagegen background for `final-cta`. All public copy remains HTML; generated images contain no embedded copy. CSS may position, crop, and overlay assets, but it must not draw pictorial Hero art.
+
 ## Completion gate
 
 The production pass must stop at `awaiting_render_review`; it must not attempt to launch a browser inside the Codex sandbox. Do not report a job ready for preview until the trusted runner has rendered all five PNG files, `creative-source-review.json`, `creative-review.json`, and `implementation-review.json` are `PASS`, render evidence has no blocking error, and `pipeline-state.json` has `status: "ready_for_preview"`.

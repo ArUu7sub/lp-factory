@@ -24,4 +24,15 @@ On its first run for each self-hosted runner user, the entrypoint installs pinne
 
 Every run writes a local, read-only diagnostic bundle to `/tmp/lp-factory-diagnostics/<job-id>/`. It contains the GitHub run ID, exit code, stage state, review JSON, render evidence when available, and Codex final messages. The normalized form payload is intentionally excluded.
 
+## Visual production contract
+
+- Heroは「左にHTMLテキスト＋右全面にimagegen画像」または「中央にHTMLテキスト＋全面背景画像」の2型から選びます。
+- Heroの絵はimagegenで生成し、人物・端末・風景などをCSSで描きません。
+- 390px表示で安全に切り抜けない場合はスマホ専用Heroを生成します。
+- 最終CTAにはHeroと別のimagegen背景を使います。
+- その他の4セクションも画像の要否を判断し、理由と使用ファイルを`design/assets-manifest.json`へ記録します。
+- 画像内にコピーを入れず、見出し・本文・ボタン・CTAはHTMLテキストとして実装します。
+
+この契約は制作エージェント、独立レビュー、Preview前バリデーションの3箇所で確認されます。
+
 See [ORCHESTRATION.md](ORCHESTRATION.md) for stages, owners, review loops, and delivery boundaries.
