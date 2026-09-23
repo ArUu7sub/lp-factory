@@ -22,8 +22,12 @@ Read `ORCHESTRATION.md`, then the normalized job named by the runtime prompt.
 
 - Keep the six section IDs and order from `templates/24h-ai/section-contract.json`.
 - Select visual direction from the answers and evidence; never ask the respondent to choose RED or COMPANY.
-- Use the built-in `imagegen` tool for text-free inserted imagery. Do not use the API fallback because this automation intentionally has no `OPENAI_API_KEY`.
-- Never use image generation for Japanese copy, wireframes, or full-page LP designs. Build those as deterministic HTML/CSS so text, spacing, breakpoints, and asset mappings remain exact.
+- Use the built-in `imagegen` tool for text-free Hero, CTA background, and necessary inserted imagery. Do not use the API fallback because this automation intentionally has no `OPENAI_API_KEY`.
+- Choose exactly one Hero composition: `split-text-left-visual-right` (HTML copy on the left; the generated visual fills the entire right Hero region) or `centered-copy-over-background` (centered HTML copy over a generated full-bleed background). Do not use a small generated picture as a card beside the copy.
+- The Hero scene must be an imagegen asset. CSS may control layout, crop, overlays, contrast, and simple decorative rules, but it must not draw the Hero illustration, people, devices, scenery, or pictorial composition.
+- Generate a dedicated mobile Hero when the desktop asset cannot be cropped safely at 390px. Otherwise document the tested crop and safe area. Never assume desktop art will work on mobile.
+- Generate a text-free imagegen background for `final-cta`. Review every other section and generate supporting imagery when it improves comprehension or visual rhythm; record `generated-image`, `generated-background`, or `not-needed` with a concrete reason for all six sections.
+- Never use image generation for Japanese copy, wireframes, or full-page LP designs. All public copy, labels, buttons, and CTA text stay as selectable HTML. Build structure, text, spacing, breakpoints, overlays, and asset mappings as deterministic HTML/CSS.
 - The trusted runner renders separate wireframe, desktop design, mobile design, desktop implementation, and mobile implementation PNGs. Do not combine them into one contact sheet.
 - Save a structured JSON specification beside every visual design so implementation does not depend on visual guessing.
 - Keep all public links local except the blank LINE placeholder. Do not expose private uploads.
