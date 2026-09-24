@@ -50,6 +50,16 @@ PNG_FILES = (
     "implementation/screenshots/desktop.png",
     "implementation/screenshots/mobile.png",
 )
+REQUIRED_REFERENCE_MARKERS = {
+    "SANKOU!": "sankoudesign.com",
+    "81-web.com": "81-web.com",
+    "Web Design Clip": "webdesignclip.com",
+    "ちょうどいいWebデザインギャラリー": "choooodoii.com",
+    "21st.dev": "21st.dev",
+    "Xserver wireframe guide": "xserver.ne.jp/bizhp/homepage-wire-frame",
+    "Pinterest wireframe board": "pinterest.com",
+    "Google wireframe image search": "google.com/search",
+}
 
 
 def load_json(path: Path) -> dict:
@@ -58,6 +68,13 @@ def load_json(path: Path) -> dict:
     if not isinstance(value, dict):
         raise ValueError(f"{path}: expected a JSON object")
     return value
+
+
+def check_required_references(path: Path, errors: list[str]) -> None:
+    text = path.read_text(encoding="utf-8").lower()
+    for label, marker in REQUIRED_REFERENCE_MARKERS.items():
+        if marker.lower() not in text:
+            errors.append(f"research/references.md: missing required source record for {label}")
 
 
 def main() -> int:
@@ -86,6 +103,10 @@ def main() -> int:
         path = root / relative
         if not path.is_file() or path.stat().st_size == 0:
             errors.append(f"missing or empty: {relative}")
+
+    references_path = root / "research" / "references.md"
+    if references_path.is_file():
+        check_required_references(references_path, errors)
 
     for relative in PNG_FILES:
         path = root / relative

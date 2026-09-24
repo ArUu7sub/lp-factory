@@ -30,6 +30,16 @@ REQUIRED_FILES = (
     "reviews/creative-source-review.json",
 )
 SECTION_IDS = ("hero", "problems", "solution", "use-cases", "process", "final-cta")
+REQUIRED_REFERENCE_MARKERS = {
+    "SANKOU!": "sankoudesign.com",
+    "81-web.com": "81-web.com",
+    "Web Design Clip": "webdesignclip.com",
+    "ちょうどいいWebデザインギャラリー": "choooodoii.com",
+    "21st.dev": "21st.dev",
+    "Xserver wireframe guide": "xserver.ne.jp/bizhp/homepage-wire-frame",
+    "Pinterest wireframe board": "pinterest.com",
+    "Google wireframe image search": "google.com/search",
+}
 
 
 def load_json(path: Path) -> dict:
@@ -53,6 +63,13 @@ def check_html(path: Path, label: str, errors: list[str]) -> None:
         errors.append(f"{label}: section ids are out of order")
     if "file://" in html:
         errors.append(f"{label}: contains file:// URL")
+
+
+def check_required_references(path: Path, errors: list[str]) -> None:
+    text = path.read_text(encoding="utf-8").lower()
+    for label, marker in REQUIRED_REFERENCE_MARKERS.items():
+        if marker.lower() not in text:
+            errors.append(f"research/references.md: missing required source record for {label}")
 
 
 def main() -> int:
@@ -90,6 +107,10 @@ def main() -> int:
         path = root / relative
         if path.is_file():
             check_html(path, label, errors)
+
+    references_path = root / "research" / "references.md"
+    if references_path.is_file():
+        check_required_references(references_path, errors)
 
     html_path = root / "index.html"
     if html_path.is_file():
