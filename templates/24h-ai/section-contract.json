@@ -9,6 +9,20 @@
     {"id": "final-cta", "purpose": "closing summary and blank LINE placeholder"}
   ],
   "conversion": {"channel": "LINE", "url": ""},
+  "header_contract": {
+    "mode": "fixed",
+    "brand": "24H AI",
+    "navigation": [
+      {"label": "できること", "target": "solution"},
+      {"label": "活用例", "target": "use-cases"},
+      {"label": "利用の流れ", "target": "process"}
+    ]
+  },
+  "draft_cta_contract": {
+    "href": "#",
+    "aria_disabled": true,
+    "public_status_notice": false
+  },
   "visual_contract": {
     "policy_version": 2,
     "hero_layouts": [
@@ -20,6 +34,7 @@
     "final_cta": "separate built-in imagegen background asset",
     "copy_rendering": "html",
     "embedded_copy_in_images": false,
-    "css_pictorial_hero": false
+    "css_pictorial_hero": false,
+    "japanese_line_breaking": "phrase-aware markup verified at 1440px and 390px"
   }
 }
