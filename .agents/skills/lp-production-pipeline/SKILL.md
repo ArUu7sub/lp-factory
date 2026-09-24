@@ -31,7 +31,8 @@ Read `ORCHESTRATION.md`, then the normalized job named by the runtime prompt.
 - The trusted runner renders separate wireframe, desktop design, mobile design, desktop implementation, and mobile implementation PNGs. Do not combine them into one contact sheet.
 - Save a structured JSON specification beside every visual design so implementation does not depend on visual guessing.
 - Keep all public links local except the blank LINE placeholder. Do not expose private uploads.
-- Use the shared fixed header defined in `templates/24h-ai/section-contract.json`; do not redesign or rewrite it per job.
+- Use the shared sticky header and shared footer defined in `templates/24h-ai/section-contract.json`; do not redesign or rewrite them per job. The footer repeats the same brand and three anchors, contains no back-to-top link, and stacks left on mobile.
+- When the Hero contains a connected-work overview, each numbered stage must pair its label with a short action or outcome. Keep it horizontal on desktop and left-aligned vertical on mobile.
 - Keep blank LINE placeholders silent. Never display `公式LINEのリンクは準備中です。` or similar preparation-state copy in the LP.
 - Use phrase-aware markup for Japanese Hero headings and key copy. At 1440px and 390px, block isolated particles/punctuation, one-character orphan lines, word-internal splits, and semantically awkward line breaks.
 - Do not proceed past a failed gate.

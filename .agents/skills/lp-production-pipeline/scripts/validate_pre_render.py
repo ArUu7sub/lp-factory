@@ -31,6 +31,12 @@ REQUIRED_FILES = (
 )
 SECTION_IDS = ("hero", "problems", "solution", "use-cases", "process", "final-cta")
 FORBIDDEN_PUBLIC_COPY = ("公式LINEのリンクは準備中です。", "公式LINEは準備中です。")
+FORBIDDEN_NAV_COPY = ("ページの先頭", "TOPへ", "トップへ")
+SHARED_NAVIGATION = (
+    ("できること", "#solution"),
+    ("活用例", "#use-cases"),
+    ("利用の流れ", "#process"),
+)
 REQUIRED_REFERENCE_MARKERS = {
     "SANKOU!": "sankoudesign.com",
     "81-web.com": "81-web.com",
@@ -69,6 +75,11 @@ def check_html(path: Path, label: str, errors: list[str]) -> None:
             errors.append(f"{label}: contains forbidden LINE preparation notice")
     if "data-balanced-heading" not in html:
         errors.append(f"{label}: Hero heading is missing data-balanced-heading")
+    for phrase in FORBIDDEN_NAV_COPY:
+        if phrase in html:
+            errors.append(f"{label}: contains forbidden back-to-top copy {phrase}")
+    if "site-header-shell" not in html:
+        errors.append(f"{label}: sticky header shell is missing")
     header = re.search(r"<header\b[^>]*class=[\"'][^\"']*site-header[^\"']*[\"'][^>]*>(.*?)</header>", html, flags=re.I | re.S)
     if not header:
         errors.append(f"{label}: missing fixed site-header")
@@ -77,6 +88,25 @@ def check_html(path: Path, label: str, errors: list[str]) -> None:
         for expected in ("24H", "AI", "できること", "活用例", "利用の流れ", '#solution', '#use-cases', '#process'):
             if expected not in header_html:
                 errors.append(f"{label}: fixed header is missing {expected}")
+    footer = re.search(r"<footer\b[^>]*class=[\"'][^\"']*site-footer[^\"']*[\"'][^>]*>(.*?)</footer>", html, flags=re.I | re.S)
+    if not footer:
+        errors.append(f"{label}: missing shared site-footer")
+    else:
+        footer_html = footer.group(1)
+        for expected in ("24H", "AI"):
+            if expected not in footer_html:
+                errors.append(f"{label}: shared footer is missing {expected}")
+        for nav_label, nav_target in SHARED_NAVIGATION:
+            if nav_label not in footer_html or nav_target not in footer_html:
+                errors.append(f"{label}: shared footer is missing {nav_label} ({nav_target})")
+    if "mini-flow" in html:
+        flow_container = re.search(r"<ol\b[^>]*class=[\"'][^\"']*mini-flow[^\"']*[\"'][^>]*>(.*?)</ol>", html, flags=re.I | re.S)
+        flow_items = re.findall(r"<li\b[^>]*>.*?</li>", flow_container.group(1), flags=re.I | re.S) if flow_container else []
+        if len(flow_items) < 3:
+            errors.append(f"{label}: Hero overview needs at least three stages")
+        for index, item in enumerate(flow_items, start=1):
+            if "flow-step-number" not in item or "<strong" not in item or "<small" not in item:
+                errors.append(f"{label}: Hero overview stage {index} needs a number, label, and action/outcome")
 
 
 def check_required_references(path: Path, errors: list[str]) -> None:
@@ -128,6 +158,13 @@ def main() -> int:
             css = css_path.read_text(encoding="utf-8")
             if ".balanced-heading" not in css or "text-wrap:balance" not in css.replace(" ", ""):
                 errors.append(f"{relative}: phrase-aware heading rules are missing")
+            normalized_css = re.sub(r"\s+", "", css.lower())
+            if ".site-header-shell" not in css or "position:sticky" not in normalized_css:
+                errors.append(f"{relative}: shared header is not sticky")
+            if ".site-footer-inner" not in css:
+                errors.append(f"{relative}: shared footer layout rules are missing")
+            if ".mini-flow" in css and "grid-template-columns:1fr" not in normalized_css:
+                errors.append(f"{relative}: mobile Hero overview is not a vertical sequence")
 
     references_path = root / "research" / "references.md"
     if references_path.is_file():

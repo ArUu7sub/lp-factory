@@ -11,12 +11,30 @@
   "conversion": {"channel": "LINE", "url": ""},
   "header_contract": {
     "mode": "fixed",
+    "position": "sticky",
+    "shared_component": true,
     "brand": "24H AI",
     "navigation": [
       {"label": "できること", "target": "solution"},
       {"label": "活用例", "target": "use-cases"},
       {"label": "利用の流れ", "target": "process"}
     ]
+  },
+  "footer_contract": {
+    "mode": "shared",
+    "brand": "24H AI",
+    "navigation": [
+      {"label": "できること", "target": "solution"},
+      {"label": "活用例", "target": "use-cases"},
+      {"label": "利用の流れ", "target": "process"}
+    ],
+    "back_to_top": false,
+    "mobile_layout": "left-aligned-vertical"
+  },
+  "hero_flow_contract": {
+    "item_content": ["number", "label", "action_or_outcome"],
+    "desktop_layout": "horizontal-sequence",
+    "mobile_layout": "left-aligned-vertical-sequence"
   },
   "draft_cta_contract": {
     "href": "#",
