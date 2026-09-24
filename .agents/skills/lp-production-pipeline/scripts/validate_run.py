@@ -61,6 +61,12 @@ REQUIRED_REFERENCE_MARKERS = {
     "Google wireframe image search": "google.com/search",
 }
 FORBIDDEN_PUBLIC_COPY = ("公式LINEのリンクは準備中です。", "公式LINEは準備中です。")
+FORBIDDEN_NAV_COPY = ("ページの先頭", "TOPへ", "トップへ")
+SHARED_NAVIGATION = (
+    ("できること", "#solution"),
+    ("活用例", "#use-cases"),
+    ("利用の流れ", "#process"),
+)
 
 
 def load_json(path: Path) -> dict:
@@ -130,6 +136,13 @@ def main() -> int:
                 errors.append(f"{relative}: bundled Japanese font is not configured")
             if ".balanced-heading" not in css or "text-wrap:balance" not in css.replace(" ", ""):
                 errors.append(f"{relative}: phrase-aware heading rules are missing")
+            normalized_css = re.sub(r"\s+", "", css.lower())
+            if ".site-header-shell" not in css or "position:sticky" not in normalized_css:
+                errors.append(f"{relative}: shared header is not sticky")
+            if ".site-footer-inner" not in css:
+                errors.append(f"{relative}: shared footer layout rules are missing")
+            if ".mini-flow" in css and "grid-template-columns:1fr" not in normalized_css:
+                errors.append(f"{relative}: mobile Hero overview is not a vertical sequence")
 
     wireframe_path = root / "design" / "wireframe.html"
     if wireframe_path.is_file():
@@ -154,8 +167,13 @@ def main() -> int:
         for phrase in FORBIDDEN_PUBLIC_COPY:
             if phrase in html:
                 errors.append("public HTML contains a forbidden LINE preparation notice")
+        for phrase in FORBIDDEN_NAV_COPY:
+            if phrase in html:
+                errors.append(f"public HTML contains forbidden back-to-top copy {phrase}")
         if "data-balanced-heading" not in html:
             errors.append("public HTML Hero heading is missing data-balanced-heading")
+        if "site-header-shell" not in html:
+            errors.append("public HTML sticky header shell is missing")
         header = re.search(r"<header\b[^>]*class=[\"'][^\"']*site-header[^\"']*[\"'][^>]*>(.*?)</header>", html, flags=re.I | re.S)
         if not header:
             errors.append("public HTML is missing the fixed site-header")
@@ -164,6 +182,25 @@ def main() -> int:
             for expected in ("24H", "AI", "できること", "活用例", "利用の流れ", '#solution', '#use-cases', '#process'):
                 if expected not in header_html:
                     errors.append(f"public HTML fixed header is missing {expected}")
+        footer = re.search(r"<footer\b[^>]*class=[\"'][^\"']*site-footer[^\"']*[\"'][^>]*>(.*?)</footer>", html, flags=re.I | re.S)
+        if not footer:
+            errors.append("public HTML is missing the shared site-footer")
+        else:
+            footer_html = footer.group(1)
+            for expected in ("24H", "AI"):
+                if expected not in footer_html:
+                    errors.append(f"public HTML shared footer is missing {expected}")
+            for nav_label, nav_target in SHARED_NAVIGATION:
+                if nav_label not in footer_html or nav_target not in footer_html:
+                    errors.append(f"public HTML shared footer is missing {nav_label} ({nav_target})")
+        if "mini-flow" in html:
+            flow_container = re.search(r"<ol\b[^>]*class=[\"'][^\"']*mini-flow[^\"']*[\"'][^>]*>(.*?)</ol>", html, flags=re.I | re.S)
+            flow_items = re.findall(r"<li\b[^>]*>.*?</li>", flow_container.group(1), flags=re.I | re.S) if flow_container else []
+            if len(flow_items) < 3:
+                errors.append("public HTML Hero overview needs at least three stages")
+            for index, item in enumerate(flow_items, start=1):
+                if "flow-step-number" not in item or "<strong" not in item or "<small" not in item:
+                    errors.append(f"public HTML Hero overview stage {index} needs a number, label, and action/outcome")
         line_links = re.findall(r"<a\b[^>]*data-line-cta[^>]*>", html, flags=re.I)
         if not line_links:
             errors.append("no data-line-cta link found")
