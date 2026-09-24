@@ -60,6 +60,7 @@ REQUIRED_REFERENCE_MARKERS = {
     "Pinterest wireframe board": "pinterest.com",
     "Google wireframe image search": "google.com/search",
 }
+FORBIDDEN_PUBLIC_COPY = ("公式LINEのリンクは準備中です。", "公式LINEは準備中です。")
 
 
 def load_json(path: Path) -> dict:
@@ -127,6 +128,8 @@ def main() -> int:
             css = css_path.read_text(encoding="utf-8")
             if 'font-family: "LP Noto Sans JP"' not in css or "NotoSansJP-Variable.ttf" not in css:
                 errors.append(f"{relative}: bundled Japanese font is not configured")
+            if ".balanced-heading" not in css or "text-wrap:balance" not in css.replace(" ", ""):
+                errors.append(f"{relative}: phrase-aware heading rules are missing")
 
     wireframe_path = root / "design" / "wireframe.html"
     if wireframe_path.is_file():
@@ -148,6 +151,19 @@ def main() -> int:
             errors.append("section ids are out of order")
         if "file://" in html:
             errors.append("public HTML contains file:// URL")
+        for phrase in FORBIDDEN_PUBLIC_COPY:
+            if phrase in html:
+                errors.append("public HTML contains a forbidden LINE preparation notice")
+        if "data-balanced-heading" not in html:
+            errors.append("public HTML Hero heading is missing data-balanced-heading")
+        header = re.search(r"<header\b[^>]*class=[\"'][^\"']*site-header[^\"']*[\"'][^>]*>(.*?)</header>", html, flags=re.I | re.S)
+        if not header:
+            errors.append("public HTML is missing the fixed site-header")
+        else:
+            header_html = header.group(1)
+            for expected in ("24H", "AI", "できること", "活用例", "利用の流れ", '#solution', '#use-cases', '#process'):
+                if expected not in header_html:
+                    errors.append(f"public HTML fixed header is missing {expected}")
         line_links = re.findall(r"<a\b[^>]*data-line-cta[^>]*>", html, flags=re.I)
         if not line_links:
             errors.append("no data-line-cta link found")

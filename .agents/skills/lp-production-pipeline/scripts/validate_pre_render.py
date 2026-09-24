@@ -30,6 +30,7 @@ REQUIRED_FILES = (
     "reviews/creative-source-review.json",
 )
 SECTION_IDS = ("hero", "problems", "solution", "use-cases", "process", "final-cta")
+FORBIDDEN_PUBLIC_COPY = ("公式LINEのリンクは準備中です。", "公式LINEは準備中です。")
 REQUIRED_REFERENCE_MARKERS = {
     "SANKOU!": "sankoudesign.com",
     "81-web.com": "81-web.com",
@@ -63,6 +64,19 @@ def check_html(path: Path, label: str, errors: list[str]) -> None:
         errors.append(f"{label}: section ids are out of order")
     if "file://" in html:
         errors.append(f"{label}: contains file:// URL")
+    for phrase in FORBIDDEN_PUBLIC_COPY:
+        if phrase in html:
+            errors.append(f"{label}: contains forbidden LINE preparation notice")
+    if "data-balanced-heading" not in html:
+        errors.append(f"{label}: Hero heading is missing data-balanced-heading")
+    header = re.search(r"<header\b[^>]*class=[\"'][^\"']*site-header[^\"']*[\"'][^>]*>(.*?)</header>", html, flags=re.I | re.S)
+    if not header:
+        errors.append(f"{label}: missing fixed site-header")
+    else:
+        header_html = header.group(1)
+        for expected in ("24H", "AI", "できること", "活用例", "利用の流れ", '#solution', '#use-cases', '#process'):
+            if expected not in header_html:
+                errors.append(f"{label}: fixed header is missing {expected}")
 
 
 def check_required_references(path: Path, errors: list[str]) -> None:
@@ -107,6 +121,13 @@ def main() -> int:
         path = root / relative
         if path.is_file():
             check_html(path, label, errors)
+
+    for relative in ("styles.css", "design/prototype/styles.css"):
+        css_path = root / relative
+        if css_path.is_file():
+            css = css_path.read_text(encoding="utf-8")
+            if ".balanced-heading" not in css or "text-wrap:balance" not in css.replace(" ", ""):
+                errors.append(f"{relative}: phrase-aware heading rules are missing")
 
     references_path = root / "research" / "references.md"
     if references_path.is_file():

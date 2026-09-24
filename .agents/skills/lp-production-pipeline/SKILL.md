@@ -31,6 +31,9 @@ Read `ORCHESTRATION.md`, then the normalized job named by the runtime prompt.
 - The trusted runner renders separate wireframe, desktop design, mobile design, desktop implementation, and mobile implementation PNGs. Do not combine them into one contact sheet.
 - Save a structured JSON specification beside every visual design so implementation does not depend on visual guessing.
 - Keep all public links local except the blank LINE placeholder. Do not expose private uploads.
+- Use the shared fixed header defined in `templates/24h-ai/section-contract.json`; do not redesign or rewrite it per job.
+- Keep blank LINE placeholders silent. Never display `公式LINEのリンクは準備中です。` or similar preparation-state copy in the LP.
+- Use phrase-aware markup for Japanese Hero headings and key copy. At 1440px and 390px, block isolated particles/punctuation, one-character orphan lines, word-internal splits, and semantically awkward line breaks.
 - Do not proceed past a failed gate.
 
 Read [references/artifact-contract.md](references/artifact-contract.md) when creating or validating job artifacts. Read [references/review-gates.md](references/review-gates.md) when routing revisions.

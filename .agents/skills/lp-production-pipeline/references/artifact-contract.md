@@ -30,4 +30,6 @@ All paths are relative to the exact output directory.
 
 The Hero and CTA images are visual layers only. Japanese copy, headings, labels, buttons, and CTA text must remain in HTML. CSS may place and crop assets and add contrast overlays, but must not construct pictorial Hero art.
 
+The HTML sources and public implementation must use the fixed header from `templates/24h-ai/section-contract.json`, must not show a LINE preparation notice, and must mark the Hero heading with `data-balanced-heading`. The paired CSS must contain phrase-aware line-breaking rules. Desktop and mobile review evidence must explicitly confirm that no one-character orphan, isolated particle/punctuation, word split, or broken meaning unit remains.
+
 The desktop design targets 1440px width. The mobile design targets 390px width. The trusted renderer uses the same viewport widths for design and implementation so the reviewer can compare them directly. It checksum-verifies and bundles Noto Sans JP, waits for `document.fonts.ready`, and records both font readiness and the computed body font family for every capture.
