@@ -35,4 +35,10 @@ Every run writes a local, read-only diagnostic bundle to `/tmp/lp-factory-diagno
 
 この契約は制作エージェント、独立レビュー、Preview前バリデーションの3箇所で確認されます。
 
+## セクション重複ゲート
+
+6セクションはそれぞれ異なる情報責任を持ちます。コピー担当は`content/lp-copy.json#section_role_audit`へ各セクションの役割と移動・削除した重複を記録し、Creativeレビューは全セクションを相互比較します。pre-renderとPreview前の両バリデーターは、監査記録、レビュー証跡、セクションをまたぐ説明文の完全一致を検査します。意味の重複または証跡不足がある場合、Draft PR作成へ進みません。
+
+このゲートは導入後に開始するすべての新規ジョブと、手動で再検証する既存ジョブへ厳格に適用します。既存Previewを自動的に再検証・無効化はしません。既存ジョブを再実行する場合は、`section_role_audit`と両Creativeレビューの`SECTION_DUPLICATION_AUDIT: PASS`証跡を追加してから検証します。固定6 IDは必ず`section`要素へ付与し、別要素へ移して検査を回避することはできません。
+
 See [ORCHESTRATION.md](ORCHESTRATION.md) for stages, owners, review loops, and delivery boundaries.
