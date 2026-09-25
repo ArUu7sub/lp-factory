@@ -37,6 +37,11 @@ SHARED_NAVIGATION = (
     ("活用例", "#use-cases"),
     ("利用の流れ", "#process"),
 )
+HERO_COPY_LIMITS = {
+    "eyebrow": (10, 22),
+    "h1": (18, 32),
+    "h2": (20, 44),
+}
 REQUIRED_REFERENCE_MARKERS = {
     "SANKOU!": "sankoudesign.com",
     "81-web.com": "81-web.com",
@@ -57,8 +62,44 @@ def load_json(path: Path) -> dict:
     return value
 
 
+def displayed_char_count(fragment: str) -> int:
+    """Count visible Hero characters without HTML, whitespace, or line breaks."""
+    text = re.sub(r"<[^>]+>", "", fragment)
+    text = re.sub(r"&(?:nbsp|#160);", "", text, flags=re.I)
+    return len(re.sub(r"\s+", "", text))
+
+
+def check_hero_copy(html: str, label: str, errors: list[str]) -> None:
+    hero_match = re.search(
+        r"<section\b[^>]*\bid=[\"']hero[\"'][^>]*>(.*?)</section>",
+        html,
+        flags=re.I | re.S,
+    )
+    if not hero_match:
+        return
+    hero = hero_match.group(1)
+    fields = {
+        "eyebrow": re.search(r"<p\b[^>]*class=[\"'][^\"']*\beyebrow\b[^\"']*[\"'][^>]*>(.*?)</p>", hero, flags=re.I | re.S),
+        "h1": re.search(r"<h1\b[^>]*>(.*?)</h1>", hero, flags=re.I | re.S),
+        "h2": re.search(r"<h2\b[^>]*class=[\"'][^\"']*\bhero-subheading\b[^\"']*[\"'][^>]*>(.*?)</h2>", hero, flags=re.I | re.S),
+    }
+    for field, match in fields.items():
+        if not match:
+            errors.append(f"{label}: Hero {field} is missing")
+            continue
+        count = displayed_char_count(match.group(1))
+        minimum, maximum = HERO_COPY_LIMITS[field]
+        if count < minimum or count > maximum:
+            errors.append(f"{label}: Hero {field} has {count} displayed characters; expected {minimum}-{maximum}")
+    if "data-hero-subheading" not in hero:
+        errors.append(f"{label}: Hero H2 is missing data-hero-subheading")
+    if "hero-description" in hero:
+        errors.append(f"{label}: Hero long description is not allowed")
+
+
 def check_html(path: Path, label: str, errors: list[str]) -> None:
     html = path.read_text(encoding="utf-8")
+    check_hero_copy(html, label, errors)
     positions: list[int] = []
     for section_id in SECTION_IDS:
         match = re.search(rf'\bid=["\']{re.escape(section_id)}["\']', html)
