@@ -1,38 +1,81 @@
 {
   "version": 2,
   "sections": [
-    {"id": "hero", "purpose": "audience, service promise, primary benefit"},
-    {"id": "problems", "purpose": "up to three recognizable customer problems"},
-    {"id": "solution", "purpose": "service responsibility and human responsibility"},
-    {"id": "use-cases", "purpose": "up to six concrete capabilities or applications"},
-    {"id": "process", "purpose": "three to six operating steps"},
-    {"id": "final-cta", "purpose": "closing summary and blank LINE placeholder"}
+    {
+      "id": "hero",
+      "purpose": "audience, service promise, primary benefit"
+    },
+    {
+      "id": "problems",
+      "purpose": "up to three recognizable customer problems"
+    },
+    {
+      "id": "solution",
+      "purpose": "service responsibility and human responsibility"
+    },
+    {
+      "id": "use-cases",
+      "purpose": "up to six concrete capabilities or applications"
+    },
+    {
+      "id": "process",
+      "purpose": "three to six operating steps"
+    },
+    {
+      "id": "final-cta",
+      "purpose": "closing summary and blank LINE placeholder"
+    }
   ],
-  "conversion": {"channel": "LINE", "url": ""},
+  "conversion": {
+    "channel": "LINE",
+    "url": ""
+  },
   "header_contract": {
     "mode": "fixed",
     "position": "sticky",
     "shared_component": true,
     "brand": "24H AI",
     "navigation": [
-      {"label": "できること", "target": "solution"},
-      {"label": "活用例", "target": "use-cases"},
-      {"label": "利用の流れ", "target": "process"}
+      {
+        "label": "できること",
+        "target": "solution"
+      },
+      {
+        "label": "活用例",
+        "target": "use-cases"
+      },
+      {
+        "label": "利用の流れ",
+        "target": "process"
+      }
     ]
   },
   "footer_contract": {
     "mode": "shared",
     "brand": "24H AI",
     "navigation": [
-      {"label": "できること", "target": "solution"},
-      {"label": "活用例", "target": "use-cases"},
-      {"label": "利用の流れ", "target": "process"}
+      {
+        "label": "できること",
+        "target": "solution"
+      },
+      {
+        "label": "活用例",
+        "target": "use-cases"
+      },
+      {
+        "label": "利用の流れ",
+        "target": "process"
+      }
     ],
     "back_to_top": false,
     "mobile_layout": "left-aligned-vertical"
   },
   "hero_flow_contract": {
-    "item_content": ["number", "label", "action_or_outcome"],
+    "item_content": [
+      "number",
+      "label",
+      "action_or_outcome"
+    ],
     "semantic_markup": "ordered-list",
     "visual_model": "one-continuous-journey-with-connected-handoffs",
     "desktop_layout": "left-to-right-route",
@@ -47,14 +90,33 @@
       "when_helpful": "built-in imagegen text-free raster assets",
       "desktop_mobile_assets": "separate when the desktop crop cannot preserve the route and label safe areas",
       "copy_rendering": "html"
-    }
+    },
+    "optional": true,
+    "omit_when": "content duplicates solution responsibility split or process participant journey"
   },
   "hero_copy_contract": {
-    "structure": ["eyebrow", "h1", "h2", "cta"],
+    "structure": [
+      "eyebrow",
+      "h1",
+      "h2",
+      "cta"
+    ],
     "counting_rule": "display_characters_excluding_whitespace_and_line_breaks",
-    "eyebrow": {"ideal_min": 10, "ideal_max": 18, "hard_max": 22},
-    "h1": {"ideal_min": 18, "ideal_max": 28, "hard_max": 32},
-    "h2": {"ideal_min": 20, "ideal_max": 36, "hard_max": 44},
+    "eyebrow": {
+      "ideal_min": 10,
+      "ideal_max": 18,
+      "hard_max": 22
+    },
+    "h1": {
+      "ideal_min": 18,
+      "ideal_max": 28,
+      "hard_max": 32
+    },
+    "h2": {
+      "ideal_min": 20,
+      "ideal_max": 36,
+      "hard_max": 44
+    },
     "long_description_allowed": false,
     "rewrite_policy": "Distill the submitted material into audience, primary benefit, and mechanism. Rewrite naturally; never truncate mechanically. Move supporting detail to later sections."
   },
