@@ -36,6 +36,15 @@
     "desktop_layout": "horizontal-sequence",
     "mobile_layout": "left-aligned-vertical-sequence"
   },
+  "hero_copy_contract": {
+    "structure": ["eyebrow", "h1", "h2", "cta"],
+    "counting_rule": "display_characters_excluding_whitespace_and_line_breaks",
+    "eyebrow": {"ideal_min": 10, "ideal_max": 18, "hard_max": 22},
+    "h1": {"ideal_min": 18, "ideal_max": 28, "hard_max": 32},
+    "h2": {"ideal_min": 20, "ideal_max": 36, "hard_max": 44},
+    "long_description_allowed": false,
+    "rewrite_policy": "Distill the submitted material into audience, primary benefit, and mechanism. Rewrite naturally; never truncate mechanically. Move supporting detail to later sections."
+  },
   "draft_cta_contract": {
     "href": "#",
     "aria_disabled": true,
