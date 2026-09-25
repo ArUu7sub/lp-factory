@@ -18,12 +18,13 @@ All paths are relative to the exact output directory.
 
 `pipeline-state.json` must contain the job ID, `status`, timestamps, and a `stages` object. Each stage records `owner`, `status`, `attempts`, `inputs`, and `outputs`. Allowed stage status values are `pending`, `running`, `pass`, `fail`, `blocked`, and `invalidated`. Job status values are `running`, `awaiting_render_review`, `needs_human`, `ready_for_preview`, and `failed`.
 
-`design/assets-manifest.json` uses schema `2.0` and `visual_policy_version: 2`. It must record:
+`design/assets-manifest.json` uses schema `2.0` and `visual_policy_version: 3`. It must record:
 
 - Hero layout: `split-text-left-visual-right` or `centered-copy-over-background`;
 - desktop Hero asset ID;
 - mobile strategy: `responsive-crop` with a tested crop reason, or `dedicated-asset` with a mobile asset ID;
 - a separate `final-cta` background asset ID;
+- a connected-workflow object and separate text-free desktop/mobile assets when the Hero overview uses an imagegen route;
 - an asset decision and rationale for every fixed section;
 - one record per generated file with path, dimensions, checksum, imagegen generator, prompt, text-free and no-embedded-copy flags, safe area, crop behavior, and usage;
 - design and public paths for every mapped asset.

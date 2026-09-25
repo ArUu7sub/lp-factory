@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "sections": [
     {"id": "hero", "purpose": "audience, service promise, primary benefit"},
     {"id": "problems", "purpose": "up to three recognizable customer problems"},
@@ -33,8 +33,21 @@
   },
   "hero_flow_contract": {
     "item_content": ["number", "label", "action_or_outcome"],
-    "desktop_layout": "horizontal-sequence",
-    "mobile_layout": "left-aligned-vertical-sequence"
+    "semantic_markup": "ordered-list",
+    "visual_model": "one-continuous-journey-with-connected-handoffs",
+    "desktop_layout": "left-to-right-route",
+    "mobile_layout": "left-aligned-top-to-bottom-route",
+    "disconnected_equal_cards": false,
+    "readability": {
+      "action_text_min_px": 18,
+      "text_contrast_minimum": "4.5:1",
+      "one_character_orphans": false
+    },
+    "supporting_visual": {
+      "when_helpful": "built-in imagegen text-free raster assets",
+      "desktop_mobile_assets": "separate when the desktop crop cannot preserve the route and label safe areas",
+      "copy_rendering": "html"
+    }
   },
   "hero_copy_contract": {
     "structure": ["eyebrow", "h1", "h2", "cta"],
@@ -51,7 +64,7 @@
     "public_status_notice": false
   },
   "visual_contract": {
-    "policy_version": 2,
+    "policy_version": 3,
     "hero_layouts": [
       "split-text-left-visual-right",
       "centered-copy-over-background"

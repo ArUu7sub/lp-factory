@@ -27,8 +27,8 @@ def validate_visual_assets(root: Path, manifest: dict, errors: list[str]) -> Non
 
     if manifest.get("schema_version") != "2.0":
         errors.append("design/assets-manifest.json: schema_version must be 2.0")
-    if manifest.get("visual_policy_version") != 2:
-        errors.append("design/assets-manifest.json: visual_policy_version must be 2")
+    if manifest.get("visual_policy_version") != 3:
+        errors.append("design/assets-manifest.json: visual_policy_version must be 3")
 
     assets_value = manifest.get("assets")
     assets = assets_value if isinstance(assets_value, list) else []
@@ -119,6 +119,36 @@ def validate_visual_assets(root: Path, manifest: dict, errors: list[str]) -> Non
     if final_cta_id and final_cta_id == hero_desktop_id:
         errors.append("design/assets-manifest.json: Hero and final CTA must use separate assets")
 
+    workflow = manifest.get("workflow_overview")
+    workflow_asset_ids: set[str] = set()
+    if workflow is not None:
+        if not isinstance(workflow, dict):
+            errors.append("design/assets-manifest.json: workflow_overview must be an object")
+            workflow = {}
+        if workflow.get("copy_rendering") != "html":
+            errors.append("design/assets-manifest.json: workflow_overview.copy_rendering must be html")
+        if workflow.get("layout") != "continuous-pipeline-with-five-stations":
+            errors.append("design/assets-manifest.json: workflow_overview.layout must be continuous-pipeline-with-five-stations")
+        workflow_desktop_id = str(workflow.get("desktop_asset_id", ""))
+        if workflow_desktop_id not in assets_by_id:
+            errors.append("design/assets-manifest.json: workflow_overview.desktop_asset_id does not reference an asset")
+        else:
+            workflow_asset_ids.add(workflow_desktop_id)
+        workflow_mobile = workflow.get("mobile")
+        if not isinstance(workflow_mobile, dict):
+            errors.append("design/assets-manifest.json: workflow_overview.mobile object is required")
+        else:
+            if workflow_mobile.get("strategy") not in MOBILE_STRATEGIES:
+                errors.append("design/assets-manifest.json: invalid workflow_overview.mobile.strategy")
+            if not str(workflow_mobile.get("reason", "")).strip():
+                errors.append("design/assets-manifest.json: workflow_overview.mobile.reason is required")
+            if workflow_mobile.get("strategy") == "dedicated-asset":
+                workflow_mobile_id = str(workflow_mobile.get("asset_id", ""))
+                if workflow_mobile_id not in assets_by_id:
+                    errors.append("design/assets-manifest.json: dedicated mobile workflow asset is missing")
+                else:
+                    workflow_asset_ids.add(workflow_mobile_id)
+
     plan_value = manifest.get("section_asset_plan")
     plan = plan_value if isinstance(plan_value, list) else []
     plans_by_section = {
@@ -156,6 +186,7 @@ def validate_visual_assets(root: Path, manifest: dict, errors: list[str]) -> Non
     required_asset_ids = {hero_desktop_id, final_cta_id}
     if mobile_strategy == "dedicated-asset":
         required_asset_ids.add(str(mobile.get("asset_id", "")))
+    required_asset_ids.update(workflow_asset_ids)
 
     public_source = _combined_text([root / "index.html", root / "styles.css"])
     prototype_source = _combined_text(
@@ -174,4 +205,3 @@ def validate_visual_assets(root: Path, manifest: dict, errors: list[str]) -> Non
             errors.append(f"public implementation does not reference mapped asset {asset_id}")
         if not prototype_path or prototype_path not in prototype_source:
             errors.append(f"design prototype does not reference mapped asset {asset_id}")
-

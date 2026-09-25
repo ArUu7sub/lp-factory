@@ -116,6 +116,27 @@ def check_hero_copy(html: str, errors: list[str]) -> None:
         errors.append("public HTML Hero long description is not allowed")
 
 
+def check_hero_overview(html: str, errors: list[str]) -> None:
+    overview_class = next((name for name in ("workflow-stations", "mini-flow") if name in html), None)
+    if not overview_class:
+        return
+    flow_container = re.search(
+        rf"<ol\b[^>]*class=[\"'][^\"']*{overview_class}[^\"']*[\"'][^>]*>(.*?)</ol>",
+        html,
+        flags=re.I | re.S,
+    )
+    flow_items = re.findall(r"<li\b[^>]*>.*?</li>", flow_container.group(1), flags=re.I | re.S) if flow_container else []
+    if len(flow_items) < 3:
+        errors.append("public HTML Hero overview needs at least three stages")
+    for index, item in enumerate(flow_items, start=1):
+        if "flow-step-number" not in item or "<strong" not in item or "<small" not in item:
+            errors.append(f"public HTML Hero overview stage {index} needs a number, label, and action/outcome")
+    if overview_class == "workflow-stations":
+        for required in ("workflow-pipeline-desktop", "workflow-pipeline-mobile", "workflow-handoff"):
+            if required not in html:
+                errors.append(f"public HTML continuous Hero overview is missing {required}")
+
+
 def check_required_references(path: Path, errors: list[str]) -> None:
     text = path.read_text(encoding="utf-8").lower()
     for label, marker in REQUIRED_REFERENCE_MARKERS.items():
@@ -182,6 +203,8 @@ def main() -> int:
                 errors.append(f"{relative}: shared footer layout rules are missing")
             if ".mini-flow" in css and "grid-template-columns:1fr" not in normalized_css:
                 errors.append(f"{relative}: mobile Hero overview is not a vertical sequence")
+            if ".workflow-stations" in css and "grid-template-rows:repeat(5" not in normalized_css:
+                errors.append(f"{relative}: continuous mobile Hero overview is not a five-stage vertical route")
 
     wireframe_path = root / "design" / "wireframe.html"
     if wireframe_path.is_file():
@@ -193,6 +216,7 @@ def main() -> int:
     if html_path.is_file():
         html = html_path.read_text(encoding="utf-8")
         check_hero_copy(html, errors)
+        check_hero_overview(html, errors)
         positions = []
         for section_id in SECTION_IDS:
             match = re.search(rf'\bid=["\']{re.escape(section_id)}["\']', html)
@@ -233,14 +257,6 @@ def main() -> int:
             for nav_label, nav_target in SHARED_NAVIGATION:
                 if nav_label not in footer_html or nav_target not in footer_html:
                     errors.append(f"public HTML shared footer is missing {nav_label} ({nav_target})")
-        if "mini-flow" in html:
-            flow_container = re.search(r"<ol\b[^>]*class=[\"'][^\"']*mini-flow[^\"']*[\"'][^>]*>(.*?)</ol>", html, flags=re.I | re.S)
-            flow_items = re.findall(r"<li\b[^>]*>.*?</li>", flow_container.group(1), flags=re.I | re.S) if flow_container else []
-            if len(flow_items) < 3:
-                errors.append("public HTML Hero overview needs at least three stages")
-            for index, item in enumerate(flow_items, start=1):
-                if "flow-step-number" not in item or "<strong" not in item or "<small" not in item:
-                    errors.append(f"public HTML Hero overview stage {index} needs a number, label, and action/outcome")
         line_links = re.findall(r"<a\b[^>]*data-line-cta[^>]*>", html, flags=re.I)
         if not line_links:
             errors.append("no data-line-cta link found")
