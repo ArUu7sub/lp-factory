@@ -97,9 +97,31 @@ def check_hero_copy(html: str, label: str, errors: list[str]) -> None:
         errors.append(f"{label}: Hero long description is not allowed")
 
 
+def check_hero_overview(html: str, label: str, errors: list[str]) -> None:
+    overview_class = next((name for name in ("workflow-stations", "mini-flow") if name in html), None)
+    if not overview_class:
+        return
+    flow_container = re.search(
+        rf"<ol\b[^>]*class=[\"'][^\"']*{overview_class}[^\"']*[\"'][^>]*>(.*?)</ol>",
+        html,
+        flags=re.I | re.S,
+    )
+    flow_items = re.findall(r"<li\b[^>]*>.*?</li>", flow_container.group(1), flags=re.I | re.S) if flow_container else []
+    if len(flow_items) < 3:
+        errors.append(f"{label}: Hero overview needs at least three stages")
+    for index, item in enumerate(flow_items, start=1):
+        if "flow-step-number" not in item or "<strong" not in item or "<small" not in item:
+            errors.append(f"{label}: Hero overview stage {index} needs a number, label, and action/outcome")
+    if overview_class == "workflow-stations":
+        for required in ("workflow-pipeline-desktop", "workflow-pipeline-mobile", "workflow-handoff"):
+            if required not in html:
+                errors.append(f"{label}: continuous Hero overview is missing {required}")
+
+
 def check_html(path: Path, label: str, errors: list[str]) -> None:
     html = path.read_text(encoding="utf-8")
     check_hero_copy(html, label, errors)
+    check_hero_overview(html, label, errors)
     positions: list[int] = []
     for section_id in SECTION_IDS:
         match = re.search(rf'\bid=["\']{re.escape(section_id)}["\']', html)
@@ -140,14 +162,6 @@ def check_html(path: Path, label: str, errors: list[str]) -> None:
         for nav_label, nav_target in SHARED_NAVIGATION:
             if nav_label not in footer_html or nav_target not in footer_html:
                 errors.append(f"{label}: shared footer is missing {nav_label} ({nav_target})")
-    if "mini-flow" in html:
-        flow_container = re.search(r"<ol\b[^>]*class=[\"'][^\"']*mini-flow[^\"']*[\"'][^>]*>(.*?)</ol>", html, flags=re.I | re.S)
-        flow_items = re.findall(r"<li\b[^>]*>.*?</li>", flow_container.group(1), flags=re.I | re.S) if flow_container else []
-        if len(flow_items) < 3:
-            errors.append(f"{label}: Hero overview needs at least three stages")
-        for index, item in enumerate(flow_items, start=1):
-            if "flow-step-number" not in item or "<strong" not in item or "<small" not in item:
-                errors.append(f"{label}: Hero overview stage {index} needs a number, label, and action/outcome")
 
 
 def check_required_references(path: Path, errors: list[str]) -> None:
@@ -206,6 +220,8 @@ def main() -> int:
                 errors.append(f"{relative}: shared footer layout rules are missing")
             if ".mini-flow" in css and "grid-template-columns:1fr" not in normalized_css:
                 errors.append(f"{relative}: mobile Hero overview is not a vertical sequence")
+            if ".workflow-stations" in css and "grid-template-rows:repeat(5" not in normalized_css:
+                errors.append(f"{relative}: continuous mobile Hero overview is not a five-stage vertical route")
 
     references_path = root / "research" / "references.md"
     if references_path.is_file():
