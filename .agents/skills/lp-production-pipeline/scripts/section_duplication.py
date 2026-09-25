@@ -102,6 +102,12 @@ def validate_section_role_audit(copy: dict, errors: list[str]) -> None:
     if not isinstance(audit.get("removed_or_moved_overlaps"), list):
         errors.append("content/lp-copy.json: section_role_audit removed_or_moved_overlaps must be an array")
 
+    standalone = audit.get("standalone_context_blocks")
+    if standalone != []:
+        errors.append(
+            "content/lp-copy.json: section_role_audit standalone_context_blocks must be an empty array"
+        )
+
 
 def validate_review_duplication_marker(review: dict, label: str, errors: list[str]) -> None:
     evidence = review.get("evidence")

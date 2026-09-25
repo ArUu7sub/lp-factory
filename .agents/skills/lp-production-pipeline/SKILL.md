@@ -37,6 +37,7 @@ Read `ORCHESTRATION.md`, then the normalized job named by the runtime prompt.
 - Keep blank LINE placeholders silent. Never display `公式LINEのリンクは準備中です。` or similar preparation-state copy in the LP.
 - Treat form prose as source material rather than verbatim Hero copy. The Hero contains exactly one eyebrow, one H1 benefit promise, one H2 mechanism, and the CTA. Count displayed characters after removing whitespace and line breaks: eyebrow 10–18 recommended / 22 maximum, H1 18–28 recommended / 32 maximum, H2 20–36 recommended / 44 maximum. Do not render a long Hero description. Rewrite naturally so the audience, primary benefit, and mechanism remain, and move supporting detail to later sections; never truncate mechanically.
 - Use phrase-aware markup for Japanese Hero headings and key copy. At 1440px and 390px, block isolated particles/punctuation, one-character orphan lines, word-internal splits, and semantically awkward line breaks.
+- Do not add standalone scope, applicability, reassurance, or context strips between the six fixed sections. Integrate necessary unique copy into its owning section; omit it when another section already communicates the point.
 - Do not proceed past a failed gate.
 
 Read [references/artifact-contract.md](references/artifact-contract.md) when creating or validating job artifacts. Read [references/review-gates.md](references/review-gates.md) when routing revisions.
