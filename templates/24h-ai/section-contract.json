@@ -120,6 +120,17 @@
     "long_description_allowed": false,
     "rewrite_policy": "Distill the submitted material into audience, primary benefit, and mechanism. Rewrite naturally; never truncate mechanically. Move supporting detail to later sections."
   },
+  "section_duplication_contract": {
+    "scope": "all six fixed sections",
+    "exact_copy_reuse": false,
+    "semantic_role_overlap": false,
+    "copy_audit_artifact": "content/lp-copy.json#section_role_audit",
+    "review_evidence_marker": "SECTION_DUPLICATION_AUDIT: PASS",
+    "validation_stages": [
+      "pre-render",
+      "ready-for-preview"
+    ]
+  },
   "draft_cta_contract": {
     "href": "#",
     "aria_disabled": true,

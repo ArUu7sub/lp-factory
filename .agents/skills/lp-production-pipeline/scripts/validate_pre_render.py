@@ -10,6 +10,11 @@ import sys
 from pathlib import Path
 
 from asset_policy import validate_visual_assets
+from section_duplication import (
+    validate_html_section_duplication,
+    validate_review_duplication_marker,
+    validate_section_role_audit,
+)
 
 
 REQUIRED_FILES = (
@@ -122,6 +127,7 @@ def check_html(path: Path, label: str, errors: list[str]) -> None:
     html = path.read_text(encoding="utf-8")
     check_hero_copy(html, label, errors)
     check_hero_overview(html, label, errors)
+    validate_html_section_duplication(html, label, errors)
     positions: list[int] = []
     for section_id in SECTION_IDS:
         match = re.search(rf'\bid=["\']{re.escape(section_id)}["\']', html)
@@ -227,6 +233,13 @@ def main() -> int:
     if references_path.is_file():
         check_required_references(references_path, errors)
 
+    copy_path = root / "content" / "lp-copy.json"
+    if copy_path.is_file():
+        try:
+            validate_section_role_audit(load_json(copy_path), errors)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(str(exc))
+
     html_path = root / "index.html"
     if html_path.is_file():
         html = html_path.read_text(encoding="utf-8")
@@ -248,6 +261,7 @@ def main() -> int:
                 errors.append("creative-source-review.json: review is not PASS")
             if review.get("blockingIssues"):
                 errors.append("creative-source-review.json: blocking issues remain")
+            validate_review_duplication_marker(review, "creative-source-review.json", errors)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             errors.append(str(exc))
 

@@ -11,6 +11,11 @@ import sys
 from pathlib import Path
 
 from asset_policy import validate_visual_assets
+from section_duplication import (
+    validate_html_section_duplication,
+    validate_review_duplication_marker,
+    validate_section_role_audit,
+)
 
 
 REQUIRED_FILES = (
@@ -217,6 +222,7 @@ def main() -> int:
         html = html_path.read_text(encoding="utf-8")
         check_hero_copy(html, errors)
         check_hero_overview(html, errors)
+        validate_html_section_duplication(html, "public HTML", errors)
         positions = []
         for section_id in SECTION_IDS:
             match = re.search(rf'\bid=["\']{re.escape(section_id)}["\']', html)
@@ -265,6 +271,13 @@ def main() -> int:
             if href and href.group(1) not in ("", "#"):
                 errors.append("LINE CTA URL must remain empty or #")
 
+    copy_path = root / "content" / "lp-copy.json"
+    if copy_path.is_file():
+        try:
+            validate_section_role_audit(load_json(copy_path), errors)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(str(exc))
+
     for relative, gate in (
         ("reviews/creative-source-review.json", "creative"),
         ("reviews/creative-review.json", "creative"),
@@ -280,6 +293,8 @@ def main() -> int:
                     errors.append(f"{relative}: review is not PASS")
                 if review.get("blockingIssues"):
                     errors.append(f"{relative}: blocking issues remain")
+                if gate == "creative":
+                    validate_review_duplication_marker(review, relative, errors)
             except (OSError, ValueError, json.JSONDecodeError) as exc:
                 errors.append(str(exc))
 
