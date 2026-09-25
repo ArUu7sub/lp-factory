@@ -60,11 +60,34 @@ class SectionDuplicationTests(unittest.TestCase):
                         for section_id in SECTION_IDS
                     },
                     "removed_or_moved_overlaps": [],
+                    "standalone_context_blocks": [],
                 }
             },
             errors,
         )
         self.assertEqual([], errors)
+
+    def test_structured_role_audit_blocks_standalone_context_copy(self) -> None:
+        errors: list[str] = []
+        validate_section_role_audit(
+            {
+                "section_role_audit": {
+                    "status": "PASS",
+                    "reviewed_sections": list(SECTION_IDS),
+                    "unique_roles": {
+                        section_id: f"{section_id}だけが担う固有の情報責任"
+                        for section_id in SECTION_IDS
+                    },
+                    "removed_or_moved_overlaps": [],
+                    "standalone_context_blocks": ["全業種対応の補足帯"],
+                }
+            },
+            errors,
+        )
+        self.assertIn(
+            "content/lp-copy.json: section_role_audit standalone_context_blocks must be an empty array",
+            errors,
+        )
 
     def test_review_requires_one_complete_audit_marker(self) -> None:
         errors: list[str] = []

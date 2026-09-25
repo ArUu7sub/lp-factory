@@ -149,5 +149,18 @@
     "embedded_copy_in_images": false,
     "css_pictorial_hero": false,
     "japanese_line_breaking": "phrase-aware markup verified at 1440px and 390px"
+  },
+  "standalone_context_contract": {
+    "allowed": false,
+    "examples": [
+      "scope",
+      "applicability",
+      "reassurance",
+      "context"
+    ],
+    "required_copy_policy": "integrate into the one fixed section that owns the meaning",
+    "redundant_copy_policy": "omit",
+    "audit_field": "content/lp-copy.json#section_role_audit.standalone_context_blocks",
+    "required_audit_value": []
   }
 }
